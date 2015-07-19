@@ -1,45 +1,22 @@
 include($$[STARLAB])
 include($$[SURFACEMESH])
-include($$[NANOFLANN])
 StarlabTemplate(none)
-
-QMAKE_CXXFLAGS -= /MP
 
 QT     += core gui
 CONFIG += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = geotopCorrespond
+TARGET = GeoTopoCorrespond
 TEMPLATE = app
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    ../DeformToFit.cpp \
-    ../EnergyGuidedDeformation.cpp \
-    ../EvaluateCorrespondence.cpp \
-    ../PropagateProximity.cpp \
-    ../PropagateSymmetry.cpp \
-    ../BatchProcess.cpp \
-    ../StructureAnalysis.cpp
-
-HEADERS  += mainwindow.h \
-    ../AStarSearch.h \
-    ../DeformToFit.h \
-    ../EncodeDecodeGeometry.h \
-    ../EnergyGuidedDeformation.h \
-    ../EvaluateCorrespondence.h \
-    ../PropagateProximity.h \
-    ../PropagateSymmetry.h \
-    ../ShapeGraph.h \
-    ../stlastar.h \
-    ../BatchProcess.h \
-    ../StructureAnalysis.h
+        mainwindow.cpp
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
 INCLUDEPATH += ..
-
 
 CONFIG(debug, debug|release) {
     CFG = debug
@@ -48,9 +25,13 @@ CONFIG(debug, debug|release) {
 }
 
 # NURBS library
-LIBS += -L$$PWD/../../NURBS/$$CFG/lib -lNURBS
-INCLUDEPATH += ../../NURBS
+LIBS += -L$$PWD/../src/NURBS/$$CFG/lib -lNURBS
+INCLUDEPATH += ../src/NURBS
 
 # StructureGraph library
-LIBS += -L$$PWD/../../StructureGraphLib/$$CFG/lib -lStructureGraphLib
-INCLUDEPATH += ../../StructureGraphLib
+LIBS += -L$$PWD/../src/StructureGraphLib/$$CFG/lib -lStructureGraphLib
+INCLUDEPATH += ../src/StructureGraphLib
+
+# GeoTopo library
+LIBS += -L$$PWD/../src/GeoTopoLib/$$CFG/lib -lGeoTopoLib
+INCLUDEPATH += ../src/GeoTopoLib

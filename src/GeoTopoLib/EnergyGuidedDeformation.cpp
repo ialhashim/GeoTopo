@@ -141,8 +141,12 @@ QVector<Energy::SearchNode> Energy::GuidedDeformation::suggestChildren(Energy::S
 	// Start process from remaining unassigned parts if needed
 	if (!path.unassigned.isEmpty())
 	{
+		std::set<QString> path_unassigned;
+		for (auto s : path.unassigned) path_unassigned.insert(s);
+
 		// Suggest for all remaining unassigned
-		for (auto & partID : path.unassigned){
+		for (auto partID : path_unassigned)
+		{
 			if (!path.shapeA->hasRelation(partID)) continue;
 			auto r = path.shapeA->relationOf(partID);
 			if (!candidatesA.contains(r)) candidatesA << r;
@@ -151,11 +155,11 @@ QVector<Energy::SearchNode> Energy::GuidedDeformation::suggestChildren(Energy::S
 
 	// Suggest for each candidate
 	QVector < QPair<Structure::Relation, Structure::Relation> > pairings;
-	for (auto & relationA : candidatesA)
+	for (auto relationA : candidatesA)
 	{
 		// Candidate target groups
 		/// Thresholding [0]: possibly skip geometrically very different ones
-		for (auto & relationB : path.shapeB->relations)
+		for (auto relationB : path.shapeB->relations)
 			pairings.push_back(qMakePair(relationA, relationB));
 	}
 

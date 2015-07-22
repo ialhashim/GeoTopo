@@ -30,9 +30,10 @@ class BatchProcess : public QThread
 public:
     BatchProcess(QString filename);
 	BatchProcess(QString sourceFilename, QString targetFilename, QVariantMap options = QVariantMap());
+	~BatchProcess();
 
-	QProgressDialog * pd;
-	RenderingWidget * renderer;
+	QSharedPointer<QProgressDialog> pd;
+	QSharedPointer<RenderingWidget> renderer;
 	int jobUID;
 
 	void init();

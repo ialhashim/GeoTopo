@@ -457,9 +457,6 @@ void GraphCorresponder::clear()
 	correspondences.clear();
 	corrScores.clear();
 
-	sIsCorresponded.clear();
-	tIsCorresponded.clear();
-
 	nonCorresS.clear();
 	nonCorresT.clear();
 	

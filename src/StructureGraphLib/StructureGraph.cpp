@@ -209,9 +209,8 @@ Link * Graph::addEdge(Node *n1, Node *n2)
 			
 			s1->moveBy(moveDelta);
 
-			std::vector<Vector3d> pnts = s1->surface.intersect(s2->surface, 0.005 * length, c1, c2);
-
 			// DEBUG:
+			//std::vector<Vector3d> pnts = s1->surface.intersect(s2->surface, 0.005 * length, c1, c2);
 			//foreach(Vector3d p, pnts) debugPoints3.push_back(p);
 
 			s1->moveBy(-moveDelta);

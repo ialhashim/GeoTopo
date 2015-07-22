@@ -44,8 +44,6 @@ DatasetMap shapesInDataset(QString datasetPath)
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
-    //w.show();
 
     QCommandLineParser parser;
     parser.addHelpOption();
@@ -66,6 +64,9 @@ int main(int argc, char *argv[])
             { { "k", "k" }, QString("(k) parameter for DP search."), QString("k") },
             { { "o", "roundtrip" }, QString("Compute least cost from source to target, and target to source.") },
             { { "c", "cut" }, QString("Allow part cuts/joins.") },
+
+			/* Experiments */
+			{ { "e", "experiment" }, QString("Perform hard coded experiments.") },
 	});
 
     if (!parser.parse(QCoreApplication::arguments())) {
@@ -79,6 +80,39 @@ int main(int argc, char *argv[])
 	QString path = parser.value("p");
 	QDir::setCurrent(path);
 
+	/// Experiments:
+	if (parser.isSet("e"))
+	{
+		QVariantMap options;
+		//options["k"].setValue(6);
+		//options["isQuietMode"].setValue(true);
+		options["isOutputMatching"].setValue(true);
+		options["isSaveReport"].setValue(true);
+		options["isLogJobs"].setValue(true);
+
+		QString sourceShape = "C:/Development/GeoTopo/standalone/ChairWood2/Woodchair2.xml";
+		QString targetShape = "C:/Development/GeoTopo/standalone/chairVK2110/chair2110.xml";
+
+		srand(time(nullptr));
+
+		for (int i = 0; i < 2; i++)
+		{
+			auto bp = QSharedPointer<BatchProcess>(new BatchProcess(sourceShape, targetShape, options));
+			bp->jobUID = (double(rand()) / RAND_MAX) * 10;
+			bp->run();
+
+			for (auto & report : bp->jobReports){
+				int time = report["search_time"].toInt();
+				double c = report["min_cost"].toDouble();
+
+				std::cout << "cost = " << c << " , time = " << time << std::endl;
+			}
+
+			//std::swap(sourceShape, targetShape);
+		}
+
+		return 0;
+	}
 
     /// Process shape sets:
     if(parser.isSet("folder"))
@@ -246,6 +280,8 @@ int main(int argc, char *argv[])
 		return folders.size();
     }
 
+	MainWindow w;
+	//w.show();
 
     /// Here we perform the actual pair-wise correspondence:
     QString jobs_filename;
@@ -335,7 +371,7 @@ int main(int argc, char *argv[])
 
 							QTextStream out(&file);
                             out << sourceShape << "," << targetShape << "," << minJob["min_cost"].toDouble() << ","
-                                << minJob["match_file"].toString() << "," << minJob["is_swapped"].toInt() << ","
+                                << minJob["match_file"].toString() << "," << minJob["job_uid"].toInt() << ","
                                 << (thumb_filename.isEmpty() ? "null" : thumb_filename) << "\n";
 						}
                     }
@@ -364,7 +400,7 @@ int main(int argc, char *argv[])
 		return CommandLineError;
     }
     else
-    {
+	{
 		jobs_filename = QFileDialog::getOpenFileName(&w, "Load Jobs", "", "Jobs File (*.json)");
     }
 

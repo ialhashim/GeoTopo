@@ -320,8 +320,8 @@ static void drawStringGL(int x, int y, const char *str, bool isShadow = false)
 			glTexCoord2f(cd->s1, cd->t0); glVertex2i(x + cd->x1+shadowDist, y + cd->y0+shadowDist);
 			glTexCoord2f(cd->s1, cd->t1); glVertex2i(x + cd->x1+shadowDist, y + cd->y1+shadowDist);
 			glTexCoord2f(cd->s0, cd->t1); glVertex2i(x + cd->x0+shadowDist, y + cd->y1+shadowDist);
+			glColor4dv(font_color);
 		}
-		if(isShadow) glColor4dv(font_color);
 
 		glTexCoord2f(cd->s0, cd->t0); glVertex2i(x + cd->x0, y + cd->y0);
 		glTexCoord2f(cd->s1, cd->t0); glVertex2i(x + cd->x1, y + cd->y0);

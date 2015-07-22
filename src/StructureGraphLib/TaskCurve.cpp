@@ -318,7 +318,7 @@ void TaskCurve::prepareMorphCurve()
 	encodeCurve( Vector4d(0,0,0,0), Vector4d(1,1,1,1) );
 
 	// Check crossing
-	if ( (isReady = true) && isCrossing() ) 
+	if ( (isReady == true) && isCrossing() ) 
 		prepareCrossingMorphCurve();
  	else			  
 		prepareMorphEdges();

@@ -200,7 +200,7 @@ void Scheduler::generateTasks()
 	{
 		QString tnodeID = superNodeCorr[snodeID];
 
-		Task * task;
+		Task * task = nullptr;
 
 		if(activeGraph->getNode(snodeID)->type() == Structure::CURVE)
 		{
@@ -221,6 +221,8 @@ void Scheduler::generateTasks()
 			else
 				task = new TaskSheet( activeGraph, targetGraph, Task::MORPH, tasks.size() );
 		}
+
+		if (task == nullptr) continue;
 
 		task->setNode( snodeID );
 		tasks.push_back( task );
@@ -921,13 +923,15 @@ void Scheduler::addMorphTask( QString nodeID )
 {
 	Task * prev = tasks.back();
 
-	Task * task;
+	Task * task = nullptr;
 
 	if(activeGraph->getNode(nodeID)->type() == Structure::CURVE)
 		task = new TaskCurve( activeGraph, targetGraph, Task::MORPH, tasks.size() );
 
 	if(activeGraph->getNode(nodeID)->type() == Structure::SHEET)
 		task = new TaskSheet( activeGraph, targetGraph, Task::MORPH, tasks.size() );
+
+	if (task == nullptr) return;
 
 	task->setNode( nodeID );
 	tasks.push_back( task );

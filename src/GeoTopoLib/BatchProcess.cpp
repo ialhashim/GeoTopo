@@ -47,12 +47,12 @@ void BatchProcess::init()
 	// Rendering	
 	if (isVisualize)
 	{
-		renderer = new RenderingWidget(512, NULL);
+		renderer = QSharedPointer<RenderingWidget>(new RenderingWidget(512, NULL));
 		renderer->move(0, 0);
 	}
 
 	// Progress
-	pd = new QProgressDialog("Searching..", "Cancel", 0, 0);
+	pd = QSharedPointer<QProgressDialog>(new QProgressDialog("Searching..", "Cancel", 0, 0));
 	pd->setValue(0);
 	pd->connect(this, SIGNAL(jobFinished(int)), SLOT(setValue(int)));
 	pd->connect(this, SIGNAL(allJobsFinished()), SLOT(deleteLater()));
@@ -200,6 +200,9 @@ void BatchProcess::run()
 			assignments.push_back(qMakePair(la, lb));
 		}
 
+		// Useful for debugging jobs
+		if (job.contains("isSaveReport")) isSaveReport = job.value("isSaveReport").toBool();
+
 		// Job report
 		QVariantMap jobReport;
 
@@ -217,10 +220,19 @@ void BatchProcess::run()
 			for (auto key : jobReport.keys())
 			{
 				out << key << ":" << "\n";
-				for (auto item : jobReport[key].toStringList())
+
+				if (jobReport[key].typeName() == QString("QStringList"))
 				{
-					out << item << "\n";
+					for (auto item : jobReport[key].toStringList())
+					{
+						out << item << "\n";
+					}
 				}
+				else
+				{
+					out << jobReport[key].toString() << "\n";
+				}
+
 				out << "\n======================\n";
 			}
 		}
@@ -228,7 +240,7 @@ void BatchProcess::run()
         jobReports.push_back(jobReport);
 
 		// Log this result
-		if (false)
+		if (job["isLogJobs"].toBool())
 		{
 			QFile file("log.txt");
 			if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
@@ -341,9 +353,9 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 	}
 	else if (isSearchAstar)
 	{
-		int k_top = 5;
+		int k_top = 6;
 
-		for (auto & solution : AStar::search(path, 100, k_top, &numNodesSearched))
+		for (auto & solution : AStar::search(path, 200, k_top, &numNodesSearched))
 		{
 			egd.origShapeA = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(*shapeA));
 			egd.origShapeB = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(*shapeB));
@@ -532,9 +544,13 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 
 				// Visualization
 				if (key == "zzShapeCost")
-					cur_solution_img = drawText(QString("[%1]").arg(detail), cur_solution_img, 12, cur_solution_img.height() - 20);
+				{
+					if (isVisualize)
+						cur_solution_img = drawText(QString("[%1]").arg(detail), cur_solution_img, 12, cur_solution_img.height() - 20);
 
-				if (key == "zzShapeCost") key += QString("(%1)").arg(r);
+					key += QString("(%1)").arg(r);
+				}
+					
 				reportItems += key + " : " + detail;
 			}
 
@@ -618,7 +634,7 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 		jobReport["img_file"].setValue(output_file);
 	}
 
-	jobReport["is_swapped"].setValue(jobUID);
+	jobReport["job_uid"].setValue(jobUID);
 	jobReport["min_cost"].setValue(minCostResult);
 	jobReport["search_time"].setValue(searchTime);
 
@@ -810,6 +826,13 @@ BatchProcess::BatchProcess(QString sourceFilename, QString targetFilename, QVari
     job["isFlip"].setValue(options["isFlip"].toBool());
     job["isAllowCutsJoins"] = options["isAllowCutsJoins"].toBool();
     job["isIgnoreSymmetryGroups"] = options["isIgnoreSymmetryGroups"].toBool();
-
+	job["isLogJobs"] = options["isLogJobs"].toBool();	
+	job["isSaveReport"] = options["isSaveReport"].toBool();
+	
 	jobsArray.push_back(QJsonObject::fromVariantMap(job));
+}
+
+BatchProcess::~BatchProcess()
+{
+
 }

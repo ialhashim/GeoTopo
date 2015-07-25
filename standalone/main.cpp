@@ -3,6 +3,9 @@
 #include <QFileDialog>
 #include <QCommandLineParser>
 #include <QProcess>
+#include <QElapsedTimer>
+#include <QDateTime>
+#include <QTimer>
 #include "BatchProcess.h"
 
 enum CommandLineParseResult{

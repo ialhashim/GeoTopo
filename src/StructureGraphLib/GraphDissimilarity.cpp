@@ -2,6 +2,8 @@
 
 #include <Eigen/Eigenvalues>
 
+using namespace Eigen;
+
 GraphDissimilarity::GraphDissimilarity( Structure::Graph *graphInstance )
 {
 	N = graphInstance->nodes.size();

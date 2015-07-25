@@ -65,11 +65,11 @@ bool Line::hasPoint( const Vector3& point, double eps)
 		return false;
 }
 
-void Line::ClosestPoint(Point c, double &t, Point &d)
+void Line::ClosestPoint(Vector3 c, double &t, Vector3 &d)
 {
 	Vector3 ab = b - a;
 	// Project c onto ab, computing parameterized position d(t) = a + t*(b ?a)
-	t = dot(Vector3(c - a), ab) / dot(ab, ab);
+    t = Vector3(c - a).dot(ab) / ab.dot(ab);
 	// If outside segment, clamp t (and therefore d) to the closest endpoint
 	if (t < 0.0) t = 0.0;
 	if (t > 1.0) t = 1.0;
@@ -85,7 +85,7 @@ Vector3 Line::midPoint()
 Vector3 Line::project( const Vector3& point )
 {
 	double time;
-	Vector3d pos;
+	Vector3 pos;
 	ClosestPoint(point, time, pos);
 	return pos;
 }
@@ -98,7 +98,7 @@ Vector3 Line::pointAt( double time ) const
 
 double Line::timeAt( const Vector3& point )
 {
-	return dot(Vector3(point - a), direction().normalized()) / length;
+    return Vector3(point - a).dot(direction().normalized()) / length;
 }
 
 Pairdouble Line::lengthsAt( const Vector3& point )
@@ -111,7 +111,7 @@ Pairdouble Line::lengthsAt( const Vector3& point )
 
 Pairdouble Line::lengthsAt( double time )
 {
-    time = qMax(0.0, qMin(1.0, time)); // bounded
+    time = std::max(0.0, std::min(1.0, time)); // bounded
 	return Pairdouble(length * time, length * (1.0 - time));
 }
 
@@ -129,11 +129,11 @@ void Line::intersectLine( const Line& S2, Vector3 & pa, Vector3 & pb, double Eps
     Vector3   v = S2.b - S2.a;
     Vector3   w = this->a - S2.a;
 
-	double    k = dot(u,u);			// (a) always >= 0
-	double    j = dot(u,v);			// (b)
-	double    c = dot(v,v);			// always >= 0
-	double    d = dot(u,w);
-	double    e = dot(v,w);
+    double    k = u.dot(u);			// (a) always >= 0
+    double    j = v.dot(v);			// (b)
+    double    c = v.dot(v);			// always >= 0
+    double    d = u.dot(w);
+    double    e = v.dot(w);
 	double    D = k*c - j*j;       // always >= 0
 	double    sc, sN, sD = D;      // sc = sN / sD, default sD = D >= 0
 	double    tc, tN, tD = D;      // tc = tN / tD, default tD = D >= 0
@@ -201,7 +201,7 @@ std::vector< Eigen::Matrix<double,3,1,Eigen::DontAlign> > Line::uniformSample( i
 
 	result.push_back(a);
 
-	for(uint i = 1; i < (uint) numSamples; i++)
+    for(size_t i = 1; i < (size_t) numSamples; i++)
 		result.push_back(result.back() + delta);
 
 	return result;

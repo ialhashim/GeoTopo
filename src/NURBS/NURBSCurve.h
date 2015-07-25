@@ -122,12 +122,12 @@ public:
     Real timeAt(const Vector3 &pos);
 	Real fastTimeAt(const Vector3 &pos);
 
-    std::vector<std::vector<Vector3> > toSegments(Scalar resolution);
+    std::vector<std::vector<Vector3> > toSegments(Real resolution);
 
     // Modify
     void translate(const Vector3 &delta);
-    void scale(Scalar scaleFactor);
-    void scaleInPlace(Scalar scaleFactor, int placeCtrlPoint);
+    void scale(Real scaleFactor);
+    void scaleInPlace(Real scaleFactor, int placeCtrlPoint);
     void translateTo(const Vector3 &newPos, int cpIDX);
 
 public:

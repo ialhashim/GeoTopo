@@ -36,7 +36,7 @@ public:
 
     void translateBy(const Vector3& delta);
     double distanceToUnbounded(const Vector3& point);
-	void ClosestPoint(Point c, double &t, Point &d);
+    void ClosestPoint(Vector3 c, double &t, Vector3 &d);
     void intersectLine( const Line& S2, Vector3 & pa, Vector3 & pb, double Epsilon = 1e-10 );
 };
 

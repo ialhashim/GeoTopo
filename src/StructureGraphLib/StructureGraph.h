@@ -8,8 +8,7 @@
 // DEBUG:
 #include "RenderObjectExt.h"
 
-// For OpenGL camera
-#include "qglviewer/qglviewer.h"
+class QGLWidget;
 
 namespace Structure{
 	typedef QVector< QVector<QString> > NodeGroups;
@@ -40,7 +39,7 @@ namespace Structure{
 		// Modifiers
 		Node * addNode( Node * n );
 		Link * addEdge( Node * n1, Node * n2 );
-		Link * addEdge( Node *n1, Node *n2, Array1D_Vector4d coord1, Array1D_Vector4d coord2, QString linkName = "" );
+		Link * addEdge( Node *n1, Node *n2, Array1D_Vector4 coord1, Array1D_Vector4 coord2, QString linkName = "" );
 		Link * addEdge( QString n1_id, QString n2_id );
 
 		void removeNode( QString nodeID );
@@ -83,14 +82,14 @@ namespace Structure{
 		QVector<Link*> getEdges( QString nodeID );
 		QVector<Link*> getEdges( QVector<int> edgeUIDs );
 		QVector<int> getEdgeIDs( QVector<Link*> forEdges );
-		QMap< Link*, Array1D_Vector4d > linksCoords( QString nodeID );
+		QMap< Link*, Array1D_Vector4 > linksCoords( QString nodeID );
 		QVector<Link*> nodeEdges( QString nodeID );
 		QVector<Node*> adjNodes( Node * node );
-		void replaceCoords( QString nodeA, QString nodeB, Array1D_Vector4d coordA, Array1D_Vector4d coordB );
+		void replaceCoords( QString nodeA, QString nodeB, Array1D_Vector4 coordA, Array1D_Vector4 coordB );
 		int indexOfNode( Node * node );
-		SurfaceMesh::Model* getMesh( QString nodeID );
+        SurfaceMeshModel* getMesh( QString nodeID );
 		QList<Link*> furthermostEdges( QString nodeID );
-		Vector3 position( QString nodeID, Vector4d& coord );
+        Vector3 position(QString nodeID, Vector4 &coord );
 		Vector3 nodeIntersection( Node * n1, Node * n2 );
         Eigen::AlignedBox3d robustBBox();
         Eigen::AlignedBox3d robustBBox(QString nodeID, double eps = 1e-6);
@@ -105,7 +104,7 @@ namespace Structure{
 		static Structure::Graph * actualGraph(Structure::Graph * fromGraph);
 
 		// Visualization
-		void draw( QGLViewer * drawArea = 0 );
+        void draw(QGLWidget *drawArea = 0 );
 		void drawAABB();
         void draw2D(int width, int height);
         void drawNodeMesh(QString nid, QColor meshColor);

@@ -2,7 +2,6 @@
 #include "NanoKdTree.h"
 #include "GraphDistance.h"
 #include "PCA.h"
-using namespace qglviewer;
 
 #if defined(Q_OS_MAC)
 #include <OpenGL/glu.h>
@@ -104,7 +103,7 @@ std::vector<Scalar> Sheet::controlWeights()
 	return cpoints;
 }
 
-void Sheet::get( const Vector4d& coordinates, Vector3 & pos, std::vector<Vector3> & frame )
+void Sheet::get( const Vector4& coordinates, Vector3 & pos, std::vector<Vector3> & frame )
 {
 	double u = coordinates[0];
 	double v = coordinates[1];
@@ -114,12 +113,12 @@ void Sheet::get( const Vector4d& coordinates, Vector3 & pos, std::vector<Vector3
 	surface.GetFrame(u, v, pos, frame[0], frame[1], frame[2]);
 }
 
-SurfaceMesh::Vector3 Sheet::position( const Vector4d& coordinates )
+SurfaceMesh::Vector3 Sheet::position( const Vector4& coordinates )
 {
     return surface.P(coordinates[0],coordinates[1]);
 }
 
-Vector4d Sheet::approxCoordinates( const Vector3 & pos )
+Vector4 Sheet::approxCoordinates( const Vector3 & pos )
 {
 	return surface.timeAt( pos );
 }
@@ -140,8 +139,8 @@ Array1D_Vector3 Sheet::discretizedAsCurve(Scalar resolution)
     Vector3 uDir = surface.mCtrlPoint.front().back() - surface.mCtrlPoint.front().front();
     Vector3 vDir = surface.mCtrlPoint.back().front() - surface.mCtrlPoint.front().front();
 
-    double projux = abs(dot(Vector3d(1,0,0), uDir.normalized()));
-    double projvx = abs(dot(Vector3d(1,0,0), vDir.normalized()));
+    double projux = abs(Vector3d(1,0,0).dot(uDir.normalized()));
+    double projvx = abs(Vector3d(1,0,0).dot(vDir.normalized()));
 
     //bool isU = uDir.norm() > vDir.norm();
 	bool isU = projux > projvx;
@@ -181,9 +180,9 @@ Array2D_Vector3 Sheet::discretized(Scalar resolution)
 	return surface.generateSurfaceTris( resolution );
 }
 
-Array2D_Vector4d Sheet::discretizedPoints( Scalar resolution )
+Array2D_Vector4 Sheet::discretizedPoints( Scalar resolution )
 {
-	Array2D_Vector4d coords;
+    Array2D_Vector4 coords;
 	surface.generateSurfacePointsCoords(resolution, coords);
 	return coords;
 }
@@ -200,7 +199,7 @@ Vector3 & Sheet::controlPoint( int idx )
 	return surface.mCtrlPoint[u][v];
 }
 
-SurfaceMesh::Scalar Sheet::area()
+double Sheet::area()
 {
 	double factor = 0.5; // distance of first control points
 
@@ -211,14 +210,14 @@ SurfaceMesh::Scalar Sheet::area()
 
 	foreach(std::vector<Vector3> v, tris)
 	{
-		double triArea = 0.5 * cross(Vector3(v[1] - v[0]), Vector3(v[2] - v[0])).norm();
+        double triArea = 0.5 * Vector3(v[1] - v[0]).cross(Vector3(v[2] - v[0])).norm();
 		a += triArea;
 	}
 
 	return a;
 }
 
-SurfaceMesh::Scalar Sheet::length()
+double Sheet::length()
 {
     auto polylineLength = [&]( std::vector<Vector3> & polyline ){
         double sum = 0;
@@ -234,7 +233,7 @@ SurfaceMesh::Scalar Sheet::length()
             polylineLength(surface.GetControlPointsV(surface.mNumUCtrlPoints-1));
 }
 
-SurfaceMesh::Scalar Sheet::avgEdgeLength()
+double Sheet::avgEdgeLength()
 {
     double sum = 0;
     int count = 0;
@@ -326,7 +325,7 @@ void Sheet::drawWithNames( int nID, int pointIDRange )
 	}
 }
 
-std::vector< std::vector<Vector3d> > Sheet::foldTo( const Array1D_Vector4d & curve, bool isApply )
+std::vector< std::vector<Vector3d> > Sheet::foldTo( const Array1D_Vector4 & curve, bool isApply )
 {
 	std::vector<Vector3d> projections, coords;
 	NanoKdTree tree;
@@ -483,14 +482,14 @@ int Sheet::numVCtrlPnts()
 }
 
 
-NURBS::NURBSCurved Sheet::convertToNURBSCurve( Vector3d p, Vector3d dir )
+NURBS::NURBSCurved Sheet::convertToNURBSCurve(Vector3 p, Vector3 dir )
 {
 	Vector3d uDir = surface.mCtrlPoint.front().back() - surface.mCtrlPoint.front().front();
 	Vector3d vDir = surface.mCtrlPoint.back().front() - surface.mCtrlPoint.front().front();
 	uDir.normalize(); vDir.normalize();
 
-	double uDot = dot(uDir, dir);
-	double vDot = dot(vDir, dir);
+    double uDot = uDir.dot(dir);
+    double vDot = vDir.dot(dir);
 
 	std::vector<Vector3d> curvePoints;
 	std::vector<double> curveWeights;
@@ -592,7 +591,7 @@ Array1D_Vector3 Sheet::decodeSheet( SheetEncoding cpCoords, Vector3 origin, Vect
 	return pnts;
 }
 
-void Sheet::deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid )
+void Sheet::deformTo( const Vector4 & handle, const Vector3 & to, bool isRigid )
 {
 	Q_UNUSED(isRigid)
 
@@ -609,8 +608,7 @@ void Sheet::deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid 
 	}
 }
 
-
-void Sheet::deformTwoHandles( Vector4d& handleA, Vector3 newPosA, Vector4d& handleB, Vector3 newPosB )
+void Sheet::deformTwoHandles( Vector4& handleA, Vector3 newPosA, Vector4& handleB, Vector3 newPosB )
 {
 	Vector3d oldA = position(handleA);
 	Vector3d oldB = position(handleB);
@@ -624,18 +622,18 @@ void Sheet::deformTwoHandles( Vector4d& handleA, Vector3 newPosA, Vector4d& hand
 	Vector3d oldX = (oldB - oldA).normalized();
 	Vector3d oldY = orthogonalVector(oldX);
 	if (oldX[0] > 0.9 && oldY[2] > 0.9) std::swap(oldY[1], oldY[2]);
-	Vector3d oldZ = cross(oldX, oldY);
+    Vector3d oldZ = oldX.cross(oldY);
 	SheetEncoding SE = encodeSheet(this, newPosA, oldX, oldY, oldZ);
 
 	double scale = (newPosB - newPosA).norm() / (oldB - oldA).norm();
 	foreach(int i, SE.keys()) SE[i][0] *= scale;
 
 	Vector3d newX = (newPosB - newPosA).normalized();
-	qglviewer::Vec tempOldX(oldX), tempNewX(newX);
-	const qglviewer::Quaternion q(tempOldX, tempNewX);
+    auto tempOldX(oldX), tempNewX(newX);
+    auto q = Eigen::Quaterniond::FromTwoVectors(tempOldX, tempNewX);
 
-	qglviewer::Vec Y = q * Vec(oldY);
-	qglviewer::Vec Z = q * Vec(oldZ);
+    auto Y = q * oldY;
+    auto Z = q * oldZ;
 
 	this->setControlPoints( decodeSheet( SE, newPosA, newX, Vector3d(Y[0], Y[1], Y[2]), Vector3d(Z[0], Z[1], Z[2]) ) );
 }

@@ -7,6 +7,7 @@
 #include <QDialogButtonBox>
 #include <QListWidget>
 #include <QMatrix4x4>
+#include <QElapsedTimer>
 #include "EncodeDecodeGeometry.h"
 
 #include "AStarSearch.h"
@@ -756,6 +757,7 @@ void RenderingWidget::paintGL()
 
     auto bbox = cur_shape->bbox();
 
+#ifdef QGLVIEWER_ENABLED
 	// Setup camera
     qglviewer::Vec cameraPos(-1.5,-1.75,1.0);
 
@@ -777,6 +779,7 @@ void RenderingWidget::paintGL()
 	cam.setViewDirection((cam.sceneCenter()-cameraPos).unit());
 	cam.loadProjectionMatrix();
 	cam.loadModelViewMatrix();
+#endif
 
 	// Draw shape
 	cur_shape->draw();

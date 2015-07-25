@@ -342,14 +342,14 @@ Real NURBSCurve<Real>::timeAt( const Vector3 & pos )
     int minIdx = 0;
     double t = 0.0;
     Vector3 d(0,0,0);
-    Scalar minDist = std::numeric_limits<Scalar>::max();
+    Real minDist = std::numeric_limits<Real>::max();
 
     for(int i = 0; i < ((int)times.size()) - 1; i++)
     {
         Line segment(this->GetPosition(times[i]), this->GetPosition(times[i+1]));
         segment.ClosestPoint(pos, t, d);
 
-        Scalar dist = (pos - d).norm();
+        Real dist = (pos - d).norm();
 
         if(dist < minDist){
             minDist = dist;
@@ -360,7 +360,8 @@ Real NURBSCurve<Real>::timeAt( const Vector3 & pos )
 	Line closestSegment(this->GetPosition(times[minIdx]), this->GetPosition(times[minIdx+1]));
 
     closestSegment.ClosestPoint(pos, t, d);
-    return qRanged(0.0, ((1-t) * times[minIdx]) + (t * times[minIdx+1]), 1.0);
+    double v = ((1-t) * times[minIdx]) + (t * times[minIdx+1]);
+    return qRanged(0.0, v, 1.0);
 }
 
 template <typename Real>
@@ -372,11 +373,11 @@ Real NURBSCurve<Real>::fastTimeAt( const Vector3 & pos )
 	int minIdx = 0;
 	double t = 0.0;
 	Vector3 d(0,0,0);
-	Scalar minDist = std::numeric_limits<Scalar>::max();
+    Real minDist = std::numeric_limits<Real>::max();
 	for(int i = 0; i < ((int)times.size()) - 1; i++){
 		Line segment(this->GetPosition(times[i]), this->GetPosition(times[i+1]));
 		segment.ClosestPoint(pos, t, d);
-		Scalar dist = (pos - d).norm();
+        Real dist = (pos - d).norm();
 		if(dist < minDist){
 			minDist = dist;
 			minIdx = i;
@@ -395,14 +396,14 @@ void NURBSCurve<Real>::translate( const Vector3 & delta )
 }
 
 template <typename Real>
-void NURBSCurve<Real>::scale( Scalar scaleFactor )
+void NURBSCurve<Real>::scale( Real scaleFactor )
 {
     for(int i = 0; i < (int)mCtrlPoint.size(); i++)
         mCtrlPoint[i] *= scaleFactor;
 }
 
 template <typename Real>
-void NURBSCurve<Real>::scaleInPlace( Scalar scaleFactor, int placeCtrlPoint )
+void NURBSCurve<Real>::scaleInPlace( Real scaleFactor, int placeCtrlPoint )
 {
     Vector3 delta = mCtrlPoint[placeCtrlPoint];
     translate( -delta );
@@ -413,14 +414,14 @@ void NURBSCurve<Real>::scaleInPlace( Scalar scaleFactor, int placeCtrlPoint )
 template <typename Real>
 void NURBSCurve<Real>::translateTo( const Vector3 & newPos, int cpIDX )
 {
-    Vector3d cp = mCtrlPoint[cpIDX];
-    Vector3d delta = newPos - cp;
+    Vector3 cp = mCtrlPoint[cpIDX];
+    Vector3 delta = newPos - cp;
     for(int i = 0; i < GetNumCtrlPoints(); i++)
         mCtrlPoint[i] += delta;
 }
 
 template <typename Real>
-std::vector < std::vector<Vector3> > NURBSCurve<Real>::toSegments( Scalar resolution )
+std::vector < std::vector<Vector3> > NURBSCurve<Real>::toSegments( Real resolution )
 {
     std::vector< std::vector<Vector3> > segments;
 
@@ -431,7 +432,7 @@ std::vector < std::vector<Vector3> > NURBSCurve<Real>::toSegments( Scalar resolu
         return segments;
     }
 
-    Scalar curveLength = this->GetLength(0,1);
+    Real curveLength = this->GetLength(0,1);
 
     // For singular cases
     if(curveLength < resolution){
@@ -598,7 +599,7 @@ Array1D_Real NURBSCurve<Real>::insertKnot(Real u, int k, int s, int r, Array1D_V
 	Array1D_Real	UQ;
 
 	Array1D_Vector3 Rw;
-	Scalar alpha;
+    Real alpha;
 	int L = 0;
 
 	int order = this->GetDegree() + 1;
@@ -745,20 +746,23 @@ Array1D_Vector3 NURBSCurve<Real>::removeKnots(int iterations)
 		Array1D_Vector3 P = curCurve.mCtrlPoint;
 		int p = curCurve.GetDegree();
 
-		QMap<Real, int> errors;
+		std::map<Real, int> errors;
 		for(int i = p + 1; i < (int)U.size() - 1; i++)
 		{
 			if(U[i] < U[i+1])
 				errors[ curCurve.KnotRemovalError(i, 1) ] = i;
 		}
 
-		int r = errors.values().at(itr); // Knot to remove
+        std::vector<int> error_values;
+        for(auto v : errors) error_values.push_back(v.second);
+
+        int r = error_values[itr]; // Knot to remove
 
 		int num = 1;
 		int s = 1;
 
 		int deg_ = curCurve.GetDegree();
-		int m = U.size() ;
+        int m = (int)U.size() ;
 		int ord = deg_+1 ;
 		int fout = (2*r-s-deg_)/2 ;
 		int last = r-s ;

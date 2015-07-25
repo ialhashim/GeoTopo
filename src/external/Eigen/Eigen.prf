@@ -1,0 +1,12 @@
+#--- This is a template library, no libs needed
+INCLUDEPATH *= $$PWD
+DEFINES *= EIGEN
+
+win32{
+    # Eigen 3.2.5 introduced some new warnings
+    QMAKE_CXXFLAGS *= /wd4522
+
+    # Use native OpenGL drivers with Qt5.5
+    # No longer implicit since the ANGLE driver is now an alternative
+    LIBS += -lopengl32 -lglu32
+}

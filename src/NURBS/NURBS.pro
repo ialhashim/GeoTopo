@@ -1,6 +1,8 @@
-include($$[STARLAB])
-include($$[SURFACEMESH])
-StarlabTemplate(none)
+# Eigen library
+include($$PWD/../external/Eigen/Eigen.prf)
+
+# Warnings
+win32{QMAKE_CXXFLAGS *= /wd4800 /wd4244 /wd4267}
 
 TEMPLATE = lib
 CONFIG += staticlib

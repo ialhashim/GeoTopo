@@ -1,8 +1,7 @@
 #include "StructureCurve.h"
 #include "LineSegment.h"
 using namespace Structure;
-
-#include "qglviewer/quaternion.h"
+using namespace opengp;
 
 #if defined(Q_OS_MAC)
 #include <OpenGL/glu.h>
@@ -38,14 +37,14 @@ Eigen::AlignedBox3d Curve::bbox(double scaling)
 {
     Eigen::AlignedBox3d box;
 
-    foreach(Vector3d cp, curve.getControlPoints())
+    for(auto cp : curve.getControlPoints())
         box = box.merged( Eigen::AlignedBox3d(cp, cp) );
 
 	// Scaling
-	Eigen::Vector3d diagonal = box.diagonal() * 0.5;
+    Eigen::Vector3d diagonal = box.diagonal() * 0.5;
 
-	Eigen::Vector3d a = box.center() + (diagonal * scaling);
-	Eigen::Vector3d b = box.center() - (diagonal * scaling);
+    Eigen::Vector3d a = box.center() + (diagonal * scaling);
+    Eigen::Vector3d b = box.center() - (diagonal * scaling);
 
 	box = box.merged( Eigen::AlignedBox3d(a,a) );
 	box = box.merged( Eigen::AlignedBox3d(b,b) );
@@ -121,26 +120,26 @@ Array2D_Vector3 Curve::discretized(Scalar resolution)
 	return curve.toSegments( resolution );
 }
 
-Array2D_Vector4d Curve::discretizedPoints( Scalar resolution )
+Array2D_Vector4 Curve::discretizedPoints( Scalar resolution )
 {
-	Array2D_Vector4d result;
+    Array2D_Vector4 result;
 
 	Scalar curveLength = curve.GetLength(0,1);
 
 	double firstTwoDist = (curve.mCtrlPoint[0] - curve.mCtrlPoint[1]).norm();
 	if(firstTwoDist < resolution * 0.001){
-		result.push_back( Array1D_Vector4d( 1, Vector4d(0,0,0,0) ) );
+		result.push_back( Array1D_Vector4( 1, Vector4d(0,0,0,0) ) );
 		return result;
 	}
 
 	// For singular cases
 	if(curveLength < resolution){
-		result.push_back( Array1D_Vector4d( 1, Vector4d(0,0,0,0) ) );
+		result.push_back( Array1D_Vector4( 1, Vector4d(0,0,0,0) ) );
 		return result;
 	}
 
 	if(!IsNumber(curveLength) || !IsFiniteNumber(curveLength)){
-		result.push_back( Array1D_Vector4d( 1, Vector4d(0,0,0,0) ) );
+		result.push_back( Array1D_Vector4( 1, Vector4d(0,0,0,0) ) );
 		return result;
 	}
 
@@ -149,7 +148,7 @@ Array2D_Vector4d Curve::discretizedPoints( Scalar resolution )
 
 	curve.SubdivideByLengthTime(np, ptsTimes);
 
-	Array1D_Vector4d resultTimes;
+	Array1D_Vector4 resultTimes;
 	result.push_back( resultTimes );
 
 	foreach(Scalar t, ptsTimes)
@@ -185,17 +184,17 @@ void Curve::laplacianSmoothControls( int num_iterations, std::set<int> anchored 
 	}
 }
 
-void Curve::moveBy( const Vector3d & delta )
+void Curve::moveBy( const Vector3 & delta )
 {
 	curve.translate( delta );
 }
 
-std::vector<Vector3d> Curve::foldTo( Vector4d & foldPoint, bool isApply)
+std::vector<Vector3> Curve::foldTo( Vector4d & foldPoint, bool isApply)
 {
 	int cpIDX = controlPointIndexFromCoord(foldPoint);
 	Vector3 cp = curve.mCtrlPoint[cpIDX];
 
-	std::vector<Vector3d> deltas;
+    std::vector<Vector3> deltas;
 
 	for(size_t i = 0; i < curve.mNumCtrlPoints; i++)
 	{
@@ -244,7 +243,7 @@ Vector3 & Curve::controlPointFromCoord( Vector4d& coord )
 	return curve.mCtrlPoint[controlPointIndexFromCoord( coord )];
 }
 
-SurfaceMesh::Scalar Curve::area()
+Scalar Curve::area()
 {
     return curve.GetTotalLength();
 }
@@ -264,7 +263,7 @@ Scalar Curve::length()
 SurfaceMesh::Vector3 Curve::center()
 {
 	Vector3 pos(0,0,0);
-    std::vector<Vector3d> nf = noFrame();
+    std::vector<Vector3> nf = noFrame();
     get(Vector4d(0.5,0.5,0,0), pos, nf);
 	return pos;
 }
@@ -319,7 +318,7 @@ void Curve::drawWithNames( int nID, int pointIDRange )
 	{
 		glPushName(pID++);
 
-		Vector3d p = curve.GetControlPoint(i);
+        Vector3 p = curve.GetControlPoint(i);
 
 		glBegin(GL_POINTS);
 		glVertex3d(p.x(), p.y(), p.z());
@@ -337,7 +336,7 @@ void Curve::equalizeControlPoints( Node * _other )
 	int diff = targetNumber - curve.mNumCtrlPoints;
 	if(diff == 0.0) return;
 
-	std::vector<Vector3d> newPnts = this->curve.simpleRefine( diff );
+    std::vector<Vector3> newPnts = this->curve.simpleRefine( diff );
 
     this->curve = NURBS::NURBSCurved(newPnts, std::vector<double>( newPnts.size(), 1.0 ));
 }
@@ -354,14 +353,14 @@ void Curve::refineControlPoints( int nU, int nV /*= 0*/ )
 	int diff = nU - curve.mNumCtrlPoints;
 	if(diff == 0) return;
 
-	std::vector<Vector3d> newPnts = this->curve.simpleRefine( diff );
+    std::vector<Vector3> newPnts = this->curve.simpleRefine( diff );
 
 	this->curve = NURBS::NURBSCurved(newPnts, std::vector<double>( newPnts.size(), 1.0 ));
 }
 
-Vector3d Curve::direction()
+Vector3 Curve::direction()
 {
-	Vector3d dir = curve.mCtrlPoint.back() - curve.mCtrlPoint.front();
+    Vector3 dir = curve.mCtrlPoint.back() - curve.mCtrlPoint.front();
 	return dir.normalized();
 }
 
@@ -375,12 +374,12 @@ CurveEncoding Curve::encodeCurve( Array1D_Vector3 points, Vector3 start, Vector3
 	NURBS::Line segment(start, end);
 
 	// compute frame
-	qglviewer::Vec x(1, 0, 0), y(0, 1, 0), z(0, 0, 1);
-	Vector3d Z = (end - start).normalized();
-	qglviewer::Quaternion q(z, qglviewer::Vec(Z));
+    Vector3 x(1, 0, 0), y(0, 1, 0), z(0, 0, 1);
+    Vector3 Z = (end - start).normalized();
+    auto q = Eigen::Quaterniond::FromTwoVectors (z, Z);
 	x = q * x; y = q * y;
-	Vector3d X(x[0], x[1], x[2]);
-	Vector3d Y(y[0], y[1], y[2]);
+    Vector3 X(x[0], x[1], x[2]);
+    Vector3 Y(y[0], y[1], y[2]);
 
 	for(int i = 0; i < (int)points.size(); i++)
 	{
@@ -424,13 +423,13 @@ Array1D_Vector3 Curve::decodeCurve(CurveEncoding cpCoords, Vector3 start, Vector
 		return Array1D_Vector3( cpCoords.size(), start );
 	}
 
-	// compute frame
-	qglviewer::Vec x(1, 0, 0), y(0, 1, 0), z(0, 0, 1);
-	Vector3d Z = (end - start).normalized();
-	qglviewer::Quaternion q(z, qglviewer::Vec(Z));
-	x = q * x; y = q * y;
-	Vector3d X(x[0], x[1], x[2]);
-	Vector3d Y(y[0], y[1], y[2]);
+    // compute frame
+    Vector3 x(1, 0, 0), y(0, 1, 0), z(0, 0, 1);
+    Vector3 Z = (end - start).normalized();
+    auto q = Eigen::Quaterniond::FromTwoVectors (z, Z);
+    x = q * x; y = q * y;
+    Vector3 X(x[0], x[1], x[2]);
+    Vector3 Y(y[0], y[1], y[2]);
 
 	for(int i = 0; i < (int)controlPoints.size(); i++)
 	{
@@ -460,12 +459,12 @@ void Curve::deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid 
 
 	if( isRigid )
 	{
-		Vector3d delta = to - p;
+        Vector3 delta = to - p;
 		this->moveBy( delta );
 		return;
 	}
 
-	Eigen::Vector3d otherEnd = position( otherEndCoord );
+    Eigen::Vector3d otherEnd = position( otherEndCoord );
 
 	// Find new scale
 	double d = (p - otherEnd).norm();
@@ -474,8 +473,8 @@ void Curve::deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid 
 	double scale = (to - otherEnd).norm() / d;
 
 	// Find minimum rotation
-	Eigen::Vector3d dirFrom (p - otherEnd);
-	Eigen::Vector3d dirTo (to - otherEnd);
+    Eigen::Vector3d dirFrom (p - otherEnd);
+    Eigen::Vector3d dirTo (to - otherEnd);
 
 	dirFrom.normalize();
 	dirTo.normalize();
@@ -487,11 +486,11 @@ void Curve::deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid 
 	// Compute deltas and apply transformations
 	for(int i = 0; i < (int)ctrlPnts.size(); i++)
 	{
-		Eigen::Vector3d delta = (ctrlPnts[i] - otherEnd);
+        Eigen::Vector3d delta = (ctrlPnts[i] - otherEnd);
 		double length = delta.norm() * scale;
 		delta.normalize();
 
-		Eigen::Vector3d rotated = rotation * delta;
+        Eigen::Vector3d rotated = rotation * delta;
 
 		ctrlPnts[i] = Vector3( (rotated * length) + otherEnd );
 	}
@@ -501,8 +500,8 @@ void Curve::deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid 
 
 void Curve::deformTwoHandles( Vector4d& handleA, Vector3 newPosA, Vector4d& handleB, Vector3 newPosB )
 {
-	Vector3d oldA = position(handleA);
-	Vector3d oldB = position(handleB);
+    Vector3 oldA = position(handleA);
+    Vector3 oldB = position(handleB);
 
 	// Numerical checks
     double oldDiff = (oldA-oldB).norm();

@@ -275,9 +275,9 @@ void Relink::fixTask( Task* task )
 			LinkConstraint constraint = consts.front();
 			Structure::Link * link = constraint.link;
 
-			Vector3d oldPos = link->position(n->id);
-			Vector3d linkPosOther = link->positionOther(n->id);
-			Vector3d delta = getToDelta(link, n->id);
+            Vector3 oldPos = link->position(n->id);
+            Vector3 linkPosOther = link->positionOther(n->id);
+            Vector3 delta = getToDelta(link, n->id);
 			Vector3 newPos = linkPosOther + delta;
 
 			// Translate
@@ -295,19 +295,19 @@ void Relink::fixTask( Task* task )
 			Structure::Link *linkA = cA.link, *linkB = cB.link;
 
 			// Two Handles and newPos:
-			Vector4d handleA = linkA->getCoord(n->id).front();
+            auto handleA = linkA->getCoord(n->id).front();
 			Vector3 linkPosOtherA = linkA->positionOther(n->id);
 			Vector3 deltaA = getToDelta(linkA, n->id);
 			Vector3 newPosA = linkPosOtherA + deltaA;
 
-			Vector4d handleB = linkB->getCoord(n->id).front();
+            auto handleB = linkB->getCoord(n->id).front();
 			Vector3 linkPosOtherB = linkB->positionOther(n->id);
 			Vector3 deltaB = getToDelta(linkB, n->id);
 			Vector3 newPosB = linkPosOtherB + deltaB;
 
 			if(n->type() == Structure::CURVE){
-				handleA = Vector4d(handleA[0],0,0,0);
-				handleB = Vector4d(handleB[0],0,0,0);
+                handleA = Eigen::Vector4d(handleA[0],0,0,0);
+                handleB = Eigen::Vector4d(handleB[0],0,0,0);
 			}
 
 			// In case two handles or two new positions are two close
@@ -341,9 +341,9 @@ void Relink::moveByConstraints( Structure::Node * n, QVector<LinkConstraint> con
 	{
 		Structure::Link * link = c.link;
 
-		Vector3d oldPos = link->position(n->id);
-		Vector3d linkPosOther = link->positionOther(n->id);
-		Vector3d delta = getToDelta(link, n->id);
+        Vector3 oldPos = link->position(n->id);
+        Vector3 linkPosOther = link->positionOther(n->id);
+        Vector3 delta = getToDelta(link, n->id);
 		Vector3 newPos = linkPosOther + delta;
 
 		oldPoints.push_back(oldPos);
@@ -362,7 +362,7 @@ void Relink::moveByConstraints( Structure::Node * n, QVector<LinkConstraint> con
 	{
 		Structure::Link* link = c.link;
 		Vector3 linkPosOther = link->positionOther(n->id);
-		Vector3d delta = getToDelta(link, n->id);
+        Vector3 delta = getToDelta(link, n->id);
 
 		activeGraph->vs2.addVector( linkPosOther, delta );
 	}

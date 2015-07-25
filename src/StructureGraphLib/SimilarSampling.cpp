@@ -1,13 +1,17 @@
 #include "SimilarSampling.h"
+#include "SurfaceMeshHelper.h"
 #include "StructureGlobal.h" // to-do: should be independent
+
+using namespace opengp;
+using namespace opengp::SurfaceMesh;
 
 // Helpers
 static inline Scalar deg_to_rad(const Scalar& _angle){ return M_PI*(_angle/180.0); }
 static inline Eigen::Vector3d barycentric(Eigen::Vector3d p, Eigen::Vector3d a, Eigen::Vector3d b, Eigen::Vector3d c){
     Eigen::Vector3d v0 = b - a, v1 = c - a, v2 = p - a;
-	double d00 = dot(v0, v0); double d01 = dot(v0, v1);
-	double d11 = dot(v1, v1); double d20 = dot(v2, v0);
-	double d21 = dot(v2, v1); double denom = d00 * d11 - d01 * d01;
+    double d00 = v0.dot(v0); double d01 = v0.dot(v1);
+    double d11 = v1.dot(v1); double d20 = v2.dot(v0);
+    double d21 = v2.dot(v1); double denom = d00 * d11 - d01 * d01;
 	double v = (d11 * d20 - d01 * d21) / denom;
 	double w = (d00 * d21 - d01 * d20) / denom;
 	double u = 1.0 - v - w;
@@ -29,7 +33,7 @@ QVector<Vector3> SimilarSampler::FaceSamples(SurfaceMeshModel * m, int sampleNum
     ScalarFaceProperty farea = m->face_property<Scalar>(FAREA);
 	   
 	Scalar area = 0;
-	foreach(Face f, m->faces()) area += farea[f];
+    for(auto f : m->faces()) area += farea[f];
 
 	// Compute edge lengths
 	ScalarEdgeProperty elength = h.computeEdgeLengths();
@@ -43,28 +47,31 @@ QVector<Vector3> SimilarSampler::FaceSamples(SurfaceMeshModel * m, int sampleNum
     Vector3VertexProperty points = h.getVector3VertexProperty(VPOINT);
 
     // Similar Triangles sampling
-    foreach(SurfaceMeshModel::Face f, m->faces())
+    for(auto f : m->faces())
     {
 		// Collect vector of triangle points, and map to vertices
         std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > triangle, virtualTri;
-		QMap<SurfaceMesh::Vertex, int> verts;
-        Surface_mesh::Vertex_around_face_circulator vit = m->vertices(f),vend=vit;
-        do{ verts[vit] = triangle.size(); triangle.push_back(points[vit]);  } while(++vit != vend);
+        QMap<Surface_mesh::Vertex, int> verts;
+        for(auto vit : m->vertices(f))
+        {
+            verts[vit] = triangle.size();
+            triangle.push_back(points[vit]);
+        }
+
 		virtualTri = triangle;
 
 		// Force virtual triangle to be isosceles
 		{
-			QMap<SurfaceMesh::Halfedge,double> edgeMap;
+            QMap<Surface_mesh::Halfedge,double> edgeMap;
 
 			// Classify edges by their lengths
-			Surface_mesh::Halfedge_around_face_circulator hj(m, f), hend = hj;
-			do{ edgeMap[hj] = elength[m->edge(hj)]; } while (++hj != hend);
-			QList< QPair<double,SurfaceMesh::Halfedge> > edges = sortQMapByValue(edgeMap);
-			SurfaceMesh::Halfedge S = edges.at(0).second, M = edges.at(1).second, L = edges.at(2).second;
+            for(auto hj : m->halfedges(f)) edgeMap[hj] = elength[m->edge(hj)];
+            QList< QPair<double,Surface_mesh::Halfedge> > edges = sortQMapByValue(edgeMap);
+            Surface_mesh::Halfedge S = edges.at(0).second, M = edges.at(1).second, L = edges.at(2).second;
 
-			SurfaceMesh::Vertex vP = m->to_vertex(m->next_halfedge(L));
-			SurfaceMesh::Vertex v0 = (vP == m->to_vertex(S)) ? m->from_vertex(S) : m->to_vertex(S);
-			SurfaceMesh::Vertex vM = (vP == m->to_vertex(M)) ? m->from_vertex(M) : m->to_vertex(M);
+            Surface_mesh::Vertex vP = m->to_vertex(m->next_halfedge(L));
+            Surface_mesh::Vertex v0 = (vP == m->to_vertex(S)) ? m->from_vertex(S) : m->to_vertex(S);
+            Surface_mesh::Vertex vM = (vP == m->to_vertex(M)) ? m->from_vertex(M) : m->to_vertex(M);
             Eigen::Vector3d deltaS = (points[vP] - points[v0]).normalized();
             Eigen::Vector3d deltaL = (points[vM] - points[v0]).normalized();
 
@@ -76,7 +83,7 @@ QVector<Vector3> SimilarSampler::FaceSamples(SurfaceMeshModel * m, int sampleNum
 			triangle[ verts[vM] ] = points[vM] + (-deltaL * elength[m->edge(L)] * 0.001);
 		}
 
-		double varea = 0.5 * cross(Vector3(virtualTri[1] - virtualTri[0]), Vector3(virtualTri[2] - virtualTri[0])).norm();
+        double varea = 0.5 * Vector3(virtualTri[1] - virtualTri[0]).cross(Vector3(virtualTri[2] - virtualTri[0])).norm();
 		
         // compute # samples in the current face
         int n_samples = (int) (0.5 * varea * samplePerAreaUnit);
@@ -128,9 +135,9 @@ QVector<Vector3> SimilarSampler::EdgeUniform(SurfaceMeshModel * m, int sampleNum
 
     // First loop compute total edge lenght;
     Scalar edgeSum = 0;
-    if(!m->has_edge_property<Scalar>(ELENGTH)) h.computeEdgeLengths();
+    if(!m->has_edge_property<double>(ELENGTH)) h.computeEdgeLengths();
     ScalarEdgeProperty elength = m->edge_property<Scalar>(ELENGTH);
-    foreach(Edge e, m->edges())	edgeSum += elength[e];
+    for(auto e : m->edges())	edgeSum += elength[e];
 
     Scalar sampleLen = edgeSum / sampleNum;
 
@@ -150,17 +157,17 @@ QVector<Vector3> SimilarSampler::EdgeUniformFixed( SurfaceMeshModel * m, QVector
 	m->update_face_normals();
 	Vector3FaceProperty fnormals = m->get_face_property<Vector3>(FNORMAL);
 
-	if(!m->has_edge_property<Scalar>(ELENGTH)) SurfaceMeshHelper(m).computeEdgeLengths();
+    if(!m->has_edge_property<double>(ELENGTH)) SurfaceMeshHelper(m).computeEdgeLengths();
 	ScalarEdgeProperty elength = m->edge_property<Scalar>(ELENGTH);
 	
 	Scalar rest = 0;
 
 	// This is a check for zero "sampleLen".. better solution is to fix it up in Face sampling
 	Scalar sumEdgeLengths = 0;
-	foreach(Edge ei, m->edges()) sumEdgeLengths += elength[ei];
+    for(auto ei : m->edges()) sumEdgeLengths += elength[ei];
 	if(sampleLen == 0.0) sampleLen = (sumEdgeLengths / m->n_edges()) / 2;
 
-	foreach(Edge ei, m->edges()){
+    for(auto ei : m->edges()){
 		Scalar len = elength[ei];
 		Scalar samplePerEdge = floor((len+rest)/sampleLen);
 		rest = (len+rest) - samplePerEdge * sampleLen;
@@ -174,7 +181,7 @@ QVector<Vector3> SimilarSampler::EdgeUniformFixed( SurfaceMeshModel * m, QVector
 			// Normal = average of adj faces
 			{
                 Eigen::Vector3d normal(0,0,0);
-				Face f1 = m->face(m->halfedge(ei,0)),f2 = m->face(m->halfedge(ei,1));
+                auto f1 = m->face(m->halfedge(ei,0)), f2 = m->face(m->halfedge(ei,1));
 				if(f1.is_valid()) normal += fnormals[f1];
 				if(f2.is_valid()) normal += fnormals[f1];
 				if(f1.is_valid() && f2.is_valid()) normal /= 2.0;

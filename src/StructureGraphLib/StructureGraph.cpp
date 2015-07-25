@@ -27,6 +27,41 @@ using namespace Structure;
 
 Q_DECLARE_METATYPE( Eigen::AlignedBox3d )
 
+Eigen::Vector2d projectedCoordinatesOf(Vector3 point3D)
+{
+    auto getViewMatrix = [&](){
+        float mat[16];
+        glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+        return QMatrix4x4(mat[0],mat[4],mat[8],mat[12],mat[1],mat[5],
+                mat[9],mat[13],mat[2],mat[6],mat[10],mat[14],mat[3],mat[7],mat[11],mat[15]);
+    };
+
+    auto getProjectionMatrix = [&](){
+        float mat[16];
+        glGetFloatv(GL_PROJECTION_MATRIX, mat);
+        return QMatrix4x4(mat[0],mat[4],mat[8],mat[12],mat[1],mat[5],
+                mat[9],mat[13],mat[2],mat[6],mat[10],mat[14],mat[3],mat[7],mat[11],mat[15]);
+    };
+
+    auto viewMatrix = getViewMatrix(), projectionMatrix = getProjectionMatrix();
+
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    int width = viewport[2], height = viewport[3];
+
+    QMatrix4x4 viewProjectionMatrix = projectionMatrix * viewMatrix;
+
+    //transform world to clipping coordinates
+    auto p = viewProjectionMatrix.map(QVector4D(point3D.x(), point3D.y(), point3D.z(), 1.0));
+    int winX = (int) round((( p.x() + 1 ) / 2.0) * width );
+
+    //we calculate -point3D.getY() because the screen Y axis is
+    //oriented top->down
+    int winY = (int) round((( 1 - p.y() ) / 2.0) * height );
+
+    return Eigen::Vector2d(winX, winY);
+}
+
 Graph::Graph()
 {
 	init();
@@ -184,7 +219,7 @@ Link * Graph::addEdge(Node *n1, Node *n2)
 {
 	Vector3 intersectPoint = nodeIntersection(n1, n2);
 
-	Array1D_Vector4d c1,c2;
+	Array1D_Vector4 c1,c2;
 
 	QString edgeType = POINT_EDGE;
 
@@ -229,7 +264,7 @@ Link * Graph::addEdge(Node *n1, Node *n2)
     return addEdge(n1,n2,c1,c2,linkName(n1, n2));
 }
 
-Link * Graph::addEdge(Node *n1, Node *n2, Array1D_Vector4d coord1, Array1D_Vector4d coord2, QString linkName)
+Link * Graph::addEdge(Node *n1, Node *n2, Array1D_Vector4 coord1, Array1D_Vector4 coord2, QString linkName)
 {
 	if(linkName.isEmpty()) linkName = this->linkName(n1,n2);
 
@@ -471,7 +506,7 @@ void Graph::clearDebug()
 	spheres.clear(); spheres2.clear();
 }
 
-void Graph::draw( QGLViewer * drawArea )
+void Graph::draw( QGLWidget * drawArea )
 {
 	if( property["isBusy"].toBool() ) return;
 
@@ -671,8 +706,8 @@ void Graph::draw( QGLViewer * drawArea )
 
 			if(property.contains("posX")) position[0] += property["posX"].toDouble();
 
-			Vec proj = drawArea->camera()->projectedCoordinatesOf(Vec(position.x(), position.y(), position.z()));
-			drawArea->renderText(proj.x,proj.y,n->id);
+            auto proj = projectedCoordinatesOf(position);
+            drawArea->renderText(proj.x(),proj.y(),n->id);
 		}
 	}
 
@@ -1139,7 +1174,7 @@ void Graph::loadFromFile( QString fileName )
 		QString n2_id = n.at(1).toElement().text();
 
 		QDomNodeList coordList = edge.toElement().elementsByTagName("coord");
-		Array2D_Vector4d coords((int)coordList.size());
+        Array2D_Vector4 coords((int)coordList.size());
 		for(int j = 0; j < (int) coords.size(); j++)
 		{
 			QDomNodeList uv = coordList.at(j).toElement().elementsByTagName("uv");
@@ -1194,25 +1229,24 @@ void Graph::exportAsOBJ( QString filename )
 
 	int v_offset = 0;
 
-	foreach(Structure::Node * n, nodes)
+    for(auto n : nodes)
 	{
 		if(!n->property.contains("mesh")) continue;
 
 		out << "# Starting mesh " << n->id << "\n";
 
-		SurfaceMesh::Model* m = getMesh(n->id);
+        auto m = getMesh(n->id);
 
 		// Write out vertices
-		Vector3VertexProperty points = m->vertex_property<Vector3>(VPOINT);
-		foreach( Vertex v, m->vertices() )
+        auto points = m->vertex_property<Vector3>(VPOINT);
+        for( auto v : m->vertices() )
 			out << "v " << points[v][0] << " " << points[v][1] << " " << points[v][2] << "\n";
 
 		// Write out triangles
 		out << "g " << n->id << "\n";
-		foreach( Face f, m->faces() ){
-			out << "f ";
-			Surface_mesh::Vertex_around_face_circulator fvit = m->vertices(f), fvend = fvit;
-			do{	out << (((Surface_mesh::Vertex)fvit).idx() + 1 + v_offset) << " ";} while (++fvit != fvend);
+        for( auto f : m->faces() ){
+            out << "f ";
+            for(auto fvit: m->vertices(f)) out << (fvit.idx() + 1 + v_offset) << " ";
 			out << "\n";
 		}
 
@@ -1445,9 +1479,9 @@ QVector<Node*> Graph::adjNodes( Node * node )
 	return adj;
 }
 
-QMap<Link*, Array1D_Vector4d > Graph::linksCoords( QString nodeID )
+QMap<Link*, Array1D_Vector4 > Graph::linksCoords( QString nodeID )
 {
-    QMap< Link*, Array1D_Vector4d > coords;
+    QMap< Link*, Array1D_Vector4 > coords;
 
 	for(int i = 0; i < edges.size(); i++)
 	{
@@ -1682,7 +1716,7 @@ QVector< QVector<Node*> > Graph::split( QString nodeID )
 	return parts;
 }
 
-void Graph::replaceCoords( QString nodeA, QString nodeB, Array1D_Vector4d coordA, Array1D_Vector4d coordB )
+void Graph::replaceCoords( QString nodeA, QString nodeB, Array1D_Vector4 coordA, Array1D_Vector4 coordB )
 {
 	// Get shared link
 	Link * sharedLink = getEdge(nodeA, nodeB);
@@ -1693,14 +1727,14 @@ void Graph::replaceCoords( QString nodeA, QString nodeB, Array1D_Vector4d coordA
 	sharedLink->setCoord(nodeB, coordB);
 }
 
-Vector3 Graph::position( QString nodeID, Vector4d& coord )
+Vector3 Graph::position( QString nodeID, Vector4& coord )
 {
 	Node * node = getNode(nodeID);
 	if(!node) return bbox().center(); // Something went wrong..
 	return node->position(coord);
 }
 
-SurfaceMesh::Model* Graph::getMesh( QString nodeID )
+SurfaceMeshModel* Graph::getMesh( QString nodeID )
 {
 	Node * node = getNode(nodeID);
 
@@ -1723,12 +1757,12 @@ void Graph::translate( Vector3 delta, bool isKeepMeshes )
 		if( !isKeepMeshes )
 		{
 			if(!node->property.contains("mesh")) continue;
-			SurfaceMesh::Model* model = getMesh(node->id);
+            auto model = getMesh(node->id);
 
             if(model)
             {
-                Vector3VertexProperty points = model->vertex_property<Vector3d>("v:point");
-                foreach(Vertex v, model->vertices()) points[v] += delta;
+                auto points = model->vertex_property<Vector3d>("v:point");
+                for(auto v : model->vertices()) points[v] += delta;
             }
 		}
 	}
@@ -1750,11 +1784,11 @@ void Graph::rotate( double angle, Vector3 axis )
 			((Sheet*)node)->surface.quads.clear();
 
 		// Move actual geometry
-        SurfaceMesh::Model* model = getMesh(node->id);
-		Vector3VertexProperty points = model->vertex_property<Vector3d>("v:point");
+        auto model = getMesh(node->id);
+        auto points = model->vertex_property<Vector3d>("v:point");
 		model->updateBoundingBox();
 
-		foreach(Vertex v, model->vertices())
+        for(auto v : model->vertices())
 		{
 			points[v] = rotatedVec(points[v],  (3.14159265358979 /180) * angle, axis);
 		}
@@ -1780,9 +1814,9 @@ void Graph::scale( double scaleFactor )
 		if(!node->property.contains("mesh")) continue;
 
 		// Move actual geometry
-        SurfaceMesh::Model* model = getMesh(node->id);
-		Vector3VertexProperty points = model->vertex_property<Vector3d>("v:point");
-		foreach(Vertex v, model->vertices())
+        auto model = getMesh(node->id);
+        auto points = model->vertex_property<Vector3d>("v:point");
+        for(auto v : model->vertices())
 			points[v] *= relative_scale;
 	}
 
@@ -1815,9 +1849,9 @@ void Graph::transform(QMatrix4x4 mat, bool isKeepMeshes)
 		// Transform actual geometry
         if(isKeepMeshes) continue;
 		if(!node->property.contains("mesh")) continue;
-		SurfaceMesh::Model* model = getMesh( node->id );
-		Vector3VertexProperty points = model->vertex_property<Vector3d>("v:point");
-        foreach(Vertex v, model->vertices()) points[v] = starlab::QVector3(mat * starlab::QVector3(points[v]));
+        auto model = getMesh( node->id );
+        auto points = model->vertex_property<Vector3d>("v:point");
+        for(auto v : model->vertices()) points[v] = starlab::QVector3(mat * starlab::QVector3(points[v]));
 	}
 }
 
@@ -1850,9 +1884,9 @@ void Graph::normalize()
 
 		// Apply to actual geometry
 		if(!node->property.contains("mesh")) continue;
-		SurfaceMesh::Model* model = getMesh( node->id );
-		Vector3VertexProperty points = model->vertex_property<Vector3d>("v:point");
-		foreach(Vertex v, model->vertices())
+        auto model = getMesh( node->id );
+        auto points = model->vertex_property<Vector3d>("v:point");
+        for(auto v : model->vertices())
 			points[v] *= scaleFactor;
 	}
 
@@ -2150,7 +2184,7 @@ void Graph::cutNode(QString nodeID, int cutCount)
 			for (int i = 0; i < cutCount; i++) dists[(newNodes[i]->approxProjection(origPos) - origPos).norm()] = i;
 
 			auto cutNode = newNodes[ dists.values().front() ];
-            addEdge(cutNode, otherNode, Array1D_Vector4d(1, cutNode->approxCoordinates(origPos)), otherCoords);
+            addEdge(cutNode, otherNode, Array1D_Vector4(1, cutNode->approxCoordinates(origPos)), otherCoords);
         }
 
         // Remove original node
@@ -2268,7 +2302,7 @@ void Graph::joinNodes(QStringList nodeIDs)
 				auto otherCoords = l->getCoordOther(nodeID);
 				auto origPos = l->position(nodeID);
 
-				addEdge(joinedNode, otherNode, Array1D_Vector4d(1, joinedNode->approxCoordinates(origPos)), otherCoords);
+				addEdge(joinedNode, otherNode, Array1D_Vector4(1, joinedNode->approxCoordinates(origPos)), otherCoords);
 			}
 		}
 
@@ -2369,7 +2403,7 @@ Structure::Graph * Graph::actualGraph(Structure::Graph * fromGraph)
 							c = ((Structure::Sheet*)replacment)->surface.fastTimeAt(e->position(n->id));
 						}
 
-						Array1D_Vector4d coord(1, c);
+						Array1D_Vector4 coord(1, c);
 
 						e->replace(n->id, replacment, coord);
 					}

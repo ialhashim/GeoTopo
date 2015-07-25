@@ -21,6 +21,8 @@ using namespace DynamicGraphs;
 
 typedef std::pair<QString, QString> PairQString;
 
+using namespace Eigen;
+
 Q_DECLARE_METATYPE( Structure::Sheet* )
 Q_DECLARE_METATYPE( QSet<Structure::Node*> )
 
@@ -244,8 +246,8 @@ void TopoBlender::correspondTwoEdges( Structure::Link *slink, Structure::Link *t
 	{
 		QString n1 = slink->n1->id;
 		QString n2 = slink->n2->id;
-		Array1D_Vector4d c1 = slink->coord.front();
-		Array1D_Vector4d c2 = slink->coord.back();
+		Array1D_Vector4 c1 = slink->coord.front();
+		Array1D_Vector4 c2 = slink->coord.back();
 
 		source->removeEdge(n1,n2);
 		slink = source->addEdge(source->getNode(n2), source->getNode(n1), c2, c1, source->linkName(n2,n1) );
@@ -697,7 +699,7 @@ void TopoBlender::postprocessSuperEdges()
 
 			if(!nodeMesh) continue;
 
-			Vector3 v0 = nodeMesh->get_vertex_property<Vector3>(VPOINT)[Vertex(0)];
+            Vector3 v0 = nodeMesh->get_vertex_property<Vector3>(VPOINT)[SurfaceMeshModel::Vertex(0)];
 			Vector3 c0 = n->controlPoints().front();
 			Vector3 deltaMesh = v0 - c0;
 			n->property["deltaMesh"].setValue( deltaMesh );
@@ -901,7 +903,7 @@ bool TopoBlender::convertSheetToCurve( QString nodeID1, QString nodeID2, Structu
                 QString otherID1 = other2->property["correspond"].toString();
 
                 Structure::Node* other1 = superG1->getNode(otherID1);
-                Vector4d otherCoord = link2->getCoordOther(nodeID2).front();
+                auto otherCoord = link2->getCoordOther(nodeID2).front();
                 Vector3d linkOtherPos1 = other1->position(otherCoord);
 
                 Vector3d direction2 = curve2->direction();
@@ -937,7 +939,7 @@ bool TopoBlender::convertSheetToCurve( QString nodeID1, QString nodeID2, Structu
 		Node * n1 = newCurve;
 		Node * n2 = l->otherNode( oldSheet->id );
 
-		Array1D_Vector4d coordOnNew = Array1D_Vector4d(1, newCurve->approxCoordinates( l->position(oldSheet->id) ));
+		Array1D_Vector4 coordOnNew = Array1D_Vector4(1, newCurve->approxCoordinates( l->position(oldSheet->id) ));
 
 		superG1->addEdge(n1, n2, coordOnNew, l->getCoord(n2->id), superG1->linkName(n1,n2));
 	}

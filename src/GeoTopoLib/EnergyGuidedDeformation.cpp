@@ -149,7 +149,17 @@ QVector<Energy::SearchNode> Energy::GuidedDeformation::suggestChildren(Energy::S
 		{
 			if (!path.shapeA->hasRelation(partID)) continue;
 			auto r = path.shapeA->relationOf(partID);
-			if (!candidatesA.contains(r)) candidatesA << r;
+
+            bool candidates_contains_relation = false;
+
+            for(auto & rj : candidatesA) {
+                if(rj.parts == r.parts){
+                    candidates_contains_relation = true;
+                    break;
+                }
+            }
+
+            if (!candidates_contains_relation) candidatesA << r;
 		}
 	}
 
@@ -376,7 +386,7 @@ void Energy::GuidedDeformation::topologicalOpeartions(Structure::ShapeGraph *sha
 		// Fix coordinates (not robust..)
 		for (auto l : shapeA->getEdges(snode->id))
 		{
-			Array1D_Vector4d sheet_coords(1, aproxProjection(l->position(snode->id), snode_sheet));
+			Array1D_Vector4 sheet_coords(1, aproxProjection(l->position(snode->id), snode_sheet));
 			l->replaceForced(snode->id, snode_sheet, sheet_coords);
 
 			// Prepare for evaluation
@@ -532,7 +542,7 @@ void Energy::GuidedDeformation::topologicalOpeartions(Structure::ShapeGraph *sha
 			DeformToFit::registerAndDeformNodes(snode_sheet_copy, tnode_sheet);
 
 			// Snap source sheet samples to closest target curve projection
-			auto samples = snode_sheet->property["samples_coords"].value<Array2D_Vector4d>();
+            auto samples = snode_sheet->property["samples_coords"].value<Array2D_Vector4>();
 			assert(!samples.empty());
 
 			auto tcurve = shapeB->getNode(lb.front());

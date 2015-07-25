@@ -1,8 +1,10 @@
 #include "StructureAnalysis.h"
 #include "ShapeGraph.h"
 #include "GenericGraph.h"
-#include "helpers/PhysicsHelper.h"
+#include "PhysicsHelper.h"
 #include "disjointset.h"
+
+using namespace Eigen;
 
 void StructureAnalysis::analyzeGroups(Structure::ShapeGraph * shape, bool isDebug)
 {

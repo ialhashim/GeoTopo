@@ -1,14 +1,9 @@
-include($$[STARLAB])
-include($$[SURFACEMESH])
-include($$[CHOLMOD])
-
-include($$[NANOFLANN])
-include($$[OCTREE])
-StarlabTemplate(none)
+include($$PWD/../external/Eigen/Eigen.prf)              # Eigen library
+include($$PWD/../external/nanoflann/nanoflann.prf)      # nanoflann library
 
 TEMPLATE = lib
 CONFIG += staticlib
-QT += opengl xml svg concurrent
+QT += opengl xml svg concurrent widgets
 
 # Build flag
 CONFIG(debug, debug|release) {
@@ -32,9 +27,9 @@ INCLUDEPATH += ../NURBS
 LIBS += -L$$PWD/../Reconstruction/$$CFG/lib -lReconstruction
 INCLUDEPATH += ../Reconstruction
 
-# Splat Rendering library
-LIBS += -L$$PWD/../GlSplatRendererLib/$$CFG/lib -lGlSplatRendererLib
-INCLUDEPATH += ../GlSplatRendererLib
+# Surface mesh library
+LIBS += -L$$PWD/../external/SurfaceMesh/$$CFG/lib -lSurfaceMesh
+INCLUDEPATH += ../external/SurfaceMesh ../external/SurfaceMesh/surface_mesh
 
 HEADERS += StructureNode.h \
     StructureGraph.h \

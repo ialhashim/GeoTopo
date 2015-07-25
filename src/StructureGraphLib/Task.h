@@ -102,7 +102,7 @@ public:
 	int myOldWidth;
 
 	// DEBUG:
-	std::vector<Vector3d> debugPoints, debugPoints2;
+    std::vector<Eigen::Vector3d> debugPoints, debugPoints2;
     starlab::VectorSoup vs1, vs2;
     starlab::LineSegments ls1, ls2;
 	void drawDebug();
@@ -116,8 +116,8 @@ static QString TaskNames[] = { "SHRINK", "MERGE", "MORPH", "SPLIT", "GROW" };
 
 // Global meta types
 Q_DECLARE_METATYPE( Task* )
-Q_DECLARE_METATYPE( Vector3 )
-Q_DECLARE_METATYPE( Vector4d )
+Q_DECLARE_METATYPE( Eigen::Vector3d )
+Q_DECLARE_METATYPE( Eigen::Vector4d )
 Q_DECLARE_METATYPE( RMF )
 Q_DECLARE_METATYPE( RMF::Frame )
 Q_DECLARE_METATYPE( std::vector<RMF::Frame> )

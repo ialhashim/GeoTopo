@@ -1,11 +1,9 @@
-include($$[STARLAB])
-include($$[SURFACEMESH])
-include($$[NANOFLANN])
-StarlabTemplate(none)
+include($$PWD/../external/Eigen/Eigen.prf)              # Eigen library
+include($$PWD/../external/nanoflann/nanoflann.prf)      # nanoflann library
 
 TEMPLATE = lib
 CONFIG += staticlib
-QT += opengl
+QT += opengl xml
 
 # Build flag
 CONFIG(debug, debug|release) {CFG = debug} else {CFG = release}
@@ -16,7 +14,6 @@ DESTDIR = $$PWD/$$CFG/lib
 
 SOURCES += \ 
     BatchProcess.cpp \
-    DeformEnergy.cpp \
     DeformToFit.cpp \
     EnergyGuidedDeformation.cpp \
     EvaluateCorrespondence.cpp \
@@ -27,7 +24,6 @@ SOURCES += \
 HEADERS += \ 
     AStarSearch.h \
     BatchProcess.h \
-    DeformEnergy.h \
     DeformToFit.h \
     EnergyGuidedDeformation.h \
     EvaluateCorrespondence.h \
@@ -40,6 +36,10 @@ HEADERS += \
 # NURBS library
 LIBS += -L$$PWD/../NURBS/$$CFG/lib -lNURBS
 INCLUDEPATH += ../NURBS
+
+# Surface mesh library
+LIBS += -L$$PWD/../external/SurfaceMesh/$$CFG/lib -lSurfaceMesh
+INCLUDEPATH += ../external/SurfaceMesh ../external/SurfaceMesh/surface_mesh
 
 # Structure Graph Library
 LIBS += -L$$PWD/../StructureGraphLib/$$CFG/lib -lStructureGraphLib

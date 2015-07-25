@@ -2,8 +2,10 @@
 #include <QFileDialog>
 #include <QtConcurrent/QtConcurrent>
 
+#ifdef SPLAT_RENDERING
 #include "GlSplatRenderer.h"
 GlSplatRenderer * splat_renderer = NULL;
+#endif
 
 #include "SynthesisManager.h"
 #include "QuickMeshDraw.h"
@@ -26,6 +28,8 @@ GlSplatRenderer * splat_renderer = NULL;
 #include <QGLFunctions>
 QGLFunctions * glFuncs = NULL;
 QGLFunctions * newGLFunction() { return new QGLFunctions(QGLContext::currentContext()); }
+
+typedef opengp::Surface_mesh::Vertex Vertex;
 
 // The following depends on the power of the GPU
 #define POINTS_LIMIT 600000
@@ -278,7 +282,7 @@ void SynthesisManager::renderCurrent(Structure::Graph * currentGraph, QString pa
 void SynthesisManager::renderGraph( Structure::Graph graph, QString filename, bool isOutPointCloud, 
 									int reconLevel, bool isOutGraph /*= false*/, bool isOutParts /*= true */ )
 {
-	QMap<QString, SurfaceMesh::Model*> reconMeshes;
+    QMap<QString, SurfaceMeshModel*> reconMeshes;
 
 	renderData.clear();
 
@@ -322,14 +326,13 @@ void SynthesisManager::renderGraph( Structure::Graph graph, QString filename, bo
 			Vector3 v0 = nodeMesh->get_vertex_property<Vector3>(VPOINT)[Vertex(0)];
 			Vector3 translation = c0 - (v0 - deltaMesh);
 
-			reconMeshes[node->id] = new SurfaceMesh::Model;
+            reconMeshes[node->id] = new SurfaceMeshModel;
 
 			// Assign a translated copy of the triangle mesh
-			foreach(Vertex v, nodeMesh->vertices()) reconMeshes[node->id]->add_vertex( origMeshPoints[v] + translation );
-			foreach(Face f, nodeMesh->faces()){
-				std::vector<Vertex> verts;
-				Surface_mesh::Vertex_around_face_circulator vit = nodeMesh->vertices(f),vend=vit;
-				do{ verts.push_back( Vertex(vit) ); } while(++vit != vend);
+            for(auto v : nodeMesh->vertices()) reconMeshes[node->id]->add_vertex( origMeshPoints[v] + translation );
+            for(auto f : nodeMesh->faces()){
+                std::vector<Vertex> verts;
+                for(auto vit : nodeMesh->vertices(f)) verts.push_back( Vertex(vit) );
 				reconMeshes[node->id]->add_triangle( verts[0], verts[1], verts[2] );
 			}
 
@@ -409,8 +412,8 @@ void SynthesisManager::renderGraph( Structure::Graph graph, QString filename, bo
 		SimpleMesh mesh;
 		PoissonRecon::makeFromCloud( pointCloudf(finalP), pointCloudf(finalN), mesh, reconLevel );
 		
-		reconMeshes[node->id] = new SurfaceMesh::Model;
-		SurfaceMesh::Model* nodeMesh = reconMeshes[node->id];
+        reconMeshes[node->id] = new SurfaceMeshModel;
+        auto nodeMesh = reconMeshes[node->id];
 
 		/// Fill-in reconstructed mesh:
 		// Vertices
@@ -422,8 +425,8 @@ void SynthesisManager::renderGraph( Structure::Graph graph, QString filename, bo
 		// Faces
 		for(int i = 0; i < (int)mesh.faces.size(); i++)
 		{
-			std::vector<SurfaceMesh::Vertex> face;
-			for(int vi = 0; vi < 3; vi++) face.push_back(SurfaceMesh::Vertex( mesh.faces[i][vi] ));
+            std::vector<Vertex> face;
+            for(int vi = 0; vi < 3; vi++) face.push_back(Vertex( mesh.faces[i][vi] ));
 			nodeMesh->add_face( face );
 		}
 
@@ -453,17 +456,16 @@ void SynthesisManager::renderGraph( Structure::Graph graph, QString filename, bo
 		int voffset = 0;
 
 		foreach(QString nid, reconMeshes.keys()){
-			SurfaceMesh::Model* mesh = reconMeshes[nid];
+            auto mesh = reconMeshes[nid];
 			out << "# NV = " << mesh->n_vertices() << " NF = " << mesh->n_faces() << "\n";
-			SurfaceMesh::Vector3VertexProperty points = mesh->vertex_property<Vector3d>("v:point");
+            auto points = mesh->vertex_property<Vector3d>("v:point");
 
-			foreach( SurfaceMesh::Vertex v, mesh->vertices() )
+            for( auto v : mesh->vertices() )
 				out << "v " << points[v][0] << " " << points[v][1] << " " << points[v][2] << "\n";
 			out << "g " << nid << "\n";
-			foreach( SurfaceMesh::Face f, mesh->faces() ){
+            for( auto f : mesh->faces() ){
 				out << "f ";
-				Surface_mesh::Vertex_around_face_circulator fvit=mesh->vertices(f), fvend=fvit;
-				do{	out << (((Surface_mesh::Vertex)fvit).idx() + 1 + voffset) << " ";} while (++fvit != fvend);
+                for(auto fvit : mesh->vertices(f)) out << (((Surface_mesh::Vertex)fvit).idx() + 1 + voffset) << " ";
 				out << "\n";
 			}
 
@@ -931,7 +933,9 @@ void SynthesisManager::drawSynthesis( Structure::Graph * activeGraph )
 		}
 		else
 		{
+#ifdef SPLAT_RENDERING
 			if(splat_renderer) splat_renderer->update(vertices);
+#endif
 		} 
 		
         currentGraph["count"] = (int)vertices.size();
@@ -958,11 +962,13 @@ void SynthesisManager::drawSynthesis( Structure::Graph * activeGraph )
 	}
 	else
 	{
+#ifdef SPLAT_RENDERING
 		if(!splat_renderer) splat_renderer = new GlSplatRenderer( splatSize );
 
 		splat_renderer->mRadius = splatSize;
 
 		splat_renderer->draw();
+#endif
 	}
 
 	glFuncs->glBindBuffer(GL_ARRAY_BUFFER, 0); // avoid interference with other drawing
@@ -1059,11 +1065,11 @@ void SynthesisManager::makeProxies(int numSides, int numSpineJoints)
 		{
             if(!n->property.contains("mesh")) continue;
 
-            SurfaceMesh::Model * model = n->property["mesh"].value< QSharedPointer<SurfaceMeshModel> >().data();
+            auto model = n->property["mesh"].value< QSharedPointer<SurfaceMeshModel> >().data();
 			if(!model) continue;
 
 			// Cached octree
-			Octree * octree = model->property("octree").value<Octree*>();
+            auto octree = model->property("octree").value<Octree*>();
 			if( !octree ){
 				octree = new Octree(model, 40);
 				QVariant oct; oct.setValue(octree);

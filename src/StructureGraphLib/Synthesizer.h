@@ -81,7 +81,7 @@ struct Synthesizer{
 	static void blendSheetBases(Structure::Sheet * sheet1, Structure::Sheet * sheet2, float alpha);
 
 	// Helper functions
-	static RMF consistentFrame( Structure::Curve * curve, Array1D_Vector4d & coords );
+	static RMF consistentFrame( Structure::Curve * curve, Array1D_Vector4 & coords );
 
 	// IO
 	static void saveSynthesisData(Structure::Node *node, QString prefix, SynthData & input);

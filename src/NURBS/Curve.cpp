@@ -20,6 +20,8 @@
 	int RombergIntegralOrder	= 3;
 #endif
 
+#define dot(a,b) ((a).dot(b))
+
 namespace NURBS
 {
 //----------------------------------------------------------------------------
@@ -95,7 +97,7 @@ Vector3 Curve<Real>::GetBinormal (Real t)
     Vector3 normal = VDotV*acceleration - VDotA*velocity;
     normal.normalize();
     velocity.normalize();
-    Vector3 binormal = cross(velocity,normal);
+    Vector3 binormal = velocity.cross(normal);
     return binormal;
 }
 //----------------------------------------------------------------------------
@@ -113,7 +115,7 @@ void Curve<Real>::GetFrame (Real t, Vector3& position,
     normal.normalize();
     tangent = velocity;
     tangent.normalize();
-    binormal = cross(tangent,normal);
+    binormal = tangent.cross(normal);
 }
 //----------------------------------------------------------------------------
 template <typename Real>
@@ -125,7 +127,7 @@ Real Curve<Real>::GetCurvature (Real t)
     if (speedSqr >= REAL_ZERO_TOLERANCE)
     {
         Vector3 acceleration = GetSecondDerivative(t);
-        Vector3 _cross = cross(velocity,acceleration);
+        Vector3 _cross = velocity.cross(acceleration);
         Real numer = _cross.norm();
         Real denom = pow(speedSqr, (Real)1.5);
         return numer/denom;
@@ -142,7 +144,7 @@ Real Curve<Real>::GetTorsion (Real t)
 {
     Vector3 velocity = GetFirstDerivative(t);
     Vector3 acceleration = GetSecondDerivative(t);
-    Vector3 _cross = cross(velocity,acceleration);
+    Vector3 _cross = velocity.cross(acceleration);
     Real denom = _cross.squaredNorm();
 
     if (denom >= REAL_ZERO_TOLERANCE)

@@ -17,8 +17,8 @@ public:
     QVector<Structure::Graph*> graphs;
     
 	// Eigen decomposition of the normalized Laplacian matrix of input graphs
-	QVector< VectorXd > eigenvalues;
-	QVector< MatrixXd > eigenvectors;
+    QVector< Eigen::VectorXd > eigenvalues;
+    QVector< Eigen::MatrixXd > eigenvectors;
 
 	// Compute dissimilarity between two graphs of input
 	double compute( int g1, int g2 );

@@ -57,8 +57,8 @@ public:
         Array2D_Vector3 ctrlPoint, Array2D_Real ctrlWeight, int uDegree,
         int vDegree, bool uLoop, bool vLoop, Real* uKnot, Real* vKnot);
 
-    static NURBSRectangle<Real> createSheet(Scalar width, Scalar length, Vector3 center, Vector3 dU, Vector3 dV, int nU = 5, int nV = 5);
-    static NURBSRectangle<Real> createSheet(Vector3d corner1, Vector3d corner2, int stepsU = 5, int stepsV = 5);
+    static NURBSRectangle<Real> createSheet(Real width, Real length, Vector3 center, Vector3 dU, Vector3 dV, int nU = 5, int nV = 5);
+    static NURBSRectangle<Real> createSheet(Vector3 corner1, Vector3 corner2, int stepsU = 5, int stepsV = 5);
 	static NURBSRectangle<Real> createSheetFromPoints( Array2D_Vector3 ctrlPoint );
 
     int GetNumCtrlPoints (int dim) const;
@@ -115,31 +115,31 @@ public:
     std::vector<SurfaceQuad> quads;
     void generateSurfaceQuads( double resolution );
 
-    std::vector<std::vector<Vector3> > generateSurfaceTris(Scalar resolution);
+    std::vector<std::vector<Vector3> > generateSurfaceTris(Real resolution);
     std::vector<std::vector<Vector3> > triangulateControlCage();
 
     void uniformCoordinates(std::vector<Real> &valU, std::vector<Real> &valV, double resolution, int u = 0, int v = 0);
 
-    void generateSurfacePoints(Scalar stepSize, std::vector<std::vector<Vector3> > &points, std::vector<Real> &valU, std::vector<Real> &valV);
-    void generateSurfacePointsCoords(Scalar stepSize, std::vector< Array1D_Vector4d > &points);
+    void generateSurfacePoints(Real stepSize, std::vector<std::vector<Vector3> > &points, std::vector<Real> &valU, std::vector<Real> &valV);
+    void generateSurfacePointsCoords(Real stepSize, std::vector< Array1D_Vector4 > &points);
 
     std::vector<Vector3> GetControlPointsU(int uIndex);
 	std::vector<Vector3> GetControlPointsV(int vIndex);
 
-	std::vector<Scalar> GetControlWeightsU(int uIndex);
-	std::vector<Scalar> GetControlWeightsV(int vIndex);
+    std::vector<Real> GetControlWeightsU(int uIndex);
+    std::vector<Real> GetControlWeightsV(int vIndex);
 
-    Array1D_Vector3 intersect(NURBSRectangle<Real> &other, double resolution, Array1D_Vector4d &coordMe, Array1D_Vector4d &coordOther);
+    Array1D_Vector3 intersect(NURBSRectangle<Real> &other, double resolution, Array1D_Vector4 &coordMe, Array1D_Vector4 &coordOther);
 
-    Vector4d timeAt(const Vector3 &pos);
-    Vector4d timeAt(const Vector3 &pos, Vector4d &bestUV, Vector4d &minRange, Vector4d &maxRange, Real currentDist, Real threshold = 1e-4 );
-    Array1D_Vector4d timeAt(const std::vector<Vector3> &positions, Real threshold);
-	Vector4d fastTimeAt(const Vector3 &pos);
+    Vector4 timeAt(const Vector3 &pos);
+    Vector4 timeAt(const Vector3 &pos, Vector4 &bestUV, Vector4 &minRange, Vector4 &maxRange, Real currentDist, Real threshold = 1e-4 );
+    Array1D_Vector4 timeAt(const std::vector<Vector3> &positions, Real threshold);
+	Vector4 fastTimeAt(const Vector3 &pos);
 
     Vector3 projectOnControl(Real u, Real v);
 
-    void translate(const Vector3d &delta);
-    void scale(Scalar scaleFactor);
+    void translate(const Vector3 &delta);
+    void scale(Real scaleFactor);
 
 public:
     // Replicate the necessary number of control points when the Create

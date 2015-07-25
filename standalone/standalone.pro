@@ -1,8 +1,7 @@
-include($$[STARLAB])
-include($$[SURFACEMESH])
-StarlabTemplate(none)
+include($$PWD/../src/external/Eigen/Eigen.prf)# Eigen library
+include($$PWD/../src/external/nanoflann/nanoflann.prf) # nanoflann library
 
-QT     += core gui
+QT     += core gui opengl xml
 CONFIG += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -27,6 +26,10 @@ CONFIG(debug, debug|release) {
 # NURBS library
 LIBS += -L$$PWD/../src/NURBS/$$CFG/lib -lNURBS
 INCLUDEPATH += ../src/NURBS
+
+# Surface mesh library
+LIBS += -L$$PWD/../src/external/SurfaceMesh/$$CFG/lib -lSurfaceMesh
+INCLUDEPATH += ../src/external/SurfaceMesh ../src/external/SurfaceMesh/surface_mesh
 
 # StructureGraph library
 LIBS += -L$$PWD/../src/StructureGraphLib/$$CFG/lib -lStructureGraphLib

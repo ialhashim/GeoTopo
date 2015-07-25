@@ -11,7 +11,6 @@
 
 #include "ExportDynamicGraph.h"
 
-using namespace NURBS;
 using namespace Structure;
 
 Task::Task( Structure::Graph * activeGraph, Structure::Graph * targetGraph, TaskType taskType, int ID )
@@ -449,8 +448,8 @@ QVector<Structure::Link*> Task::filteredFromTargetEdges()
 		{
 			Node * n1 = active->getNode(edge->n1->property["correspond"].toString());
 			Node * n2 = active->getNode(edge->n2->property["correspond"].toString());
-			Array1D_Vector4d c1 = edge->coord.front();
-			Array1D_Vector4d c2 = edge->coord.back();
+			Array1D_Vector4 c1 = edge->coord.front();
+			Array1D_Vector4 c2 = edge->coord.back();
 
 			// Bring it back
 			slink = active->addEdge(n1, n2, c1, c2, active->linkName(n1,n2));
@@ -515,7 +514,7 @@ RMF::Frame Task::sheetFrame( Structure::Sheet * sheet )
 
 	Vector3 X = (A - corner).normalized();
 	Vector3 Y = (B - corner).normalized();
-	Vector3 Z = cross(X,Y);
+    Vector3 Z = X.cross(Y);
 
 	RMF::Frame frame = RMF::Frame::fromTR(Z,X);
 	frame.center = (A + B + C + corner) / 4.0;
@@ -537,9 +536,9 @@ RMF::Frame Task::curveFrame( Structure::Curve * curve, bool isFlip )
 	Vector4d zero(0,0,0,0);
 	Vector4d one(1,1,1,1);
 	if(isFlip) std::swap(zero,one);
-	Vector3d origin = curve->position(zero);
-	Vector3d X = (curve->position(one) - origin).normalized();
-	Vector3d Y = orthogonalVector(X);
+    Vector3 origin = curve->position(zero);
+    Vector3 X = (curve->position(one) - origin).normalized();
+    Vector3 Y = orthogonalVector(X);
 	RMF::Frame frame = RMF::Frame::fromRS(X,Y);
 	frame.center = origin; 
 	return frame;
@@ -670,8 +669,8 @@ void Task::postDone()
 		foreach(Link* link, active->getEdges(nodeID))
 		{
 			Link * tlink = target->getEdge(link->property["correspond"].toInt());
-			Array1D_Vector4d coordMe = tlink->getCoord(n->property["correspond"].toString());
-			Array1D_Vector4d coordOther = tlink->getCoordOther(n->property["correspond"].toString());
+			Array1D_Vector4 coordMe = tlink->getCoord(n->property["correspond"].toString());
+			Array1D_Vector4 coordOther = tlink->getCoordOther(n->property["correspond"].toString());
 
 			link->setCoord(nodeID, coordMe);
 			link->setCoord(link->otherNode(nodeID)->id, coordOther);
@@ -768,9 +767,9 @@ void Task::prepareMorphEdges()
 	// Compute paths for all edges
 	foreach(Link * link, edges)
 	{
-		Vector3d start = link->positionOther(n->id);
+        Vector3 start = link->positionOther(n->id);
 		NodeCoord futureNodeCord = futureOtherNodeCoord(link);
-		Vector3d end = active->position(futureNodeCord.first, futureNodeCord.second);
+        Vector3 end = active->position(futureNodeCord.first, futureNodeCord.second);
 
 		// Geodesic distances on the active graph excluding the running tasks
 		QVector< GraphDistance::PathPointPair > path;
@@ -826,7 +825,7 @@ void Task::executeMorphEdges( double t )
 		Task * otherTask = otherOld->property["task"].value<Task*>();
 		if(otherTask->isReady && !otherTask->isDone) continue;
 
-		Array1D_Vector4d newCoords = Array1D_Vector4d(1, cur.a.second);
+		Array1D_Vector4 newCoords = Array1D_Vector4(1, cur.a.second);
 
 		if(otherOld->id != otherNew->id)
 			link->replace( otherOld->id, otherNew, newCoords );

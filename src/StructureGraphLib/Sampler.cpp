@@ -1,6 +1,7 @@
 #include "Sampler.h"
+#include "SurfaceMeshHelper.h"
 
-Sampler::Sampler(SurfaceMesh::Model * srcMesh, SamplingMethod samplingMethod)
+Sampler::Sampler(SurfaceMeshModel * srcMesh, SamplingMethod samplingMethod)
 {
 	if(srcMesh == NULL) 
 		return;
@@ -27,10 +28,10 @@ Sampler::Sampler(SurfaceMesh::Model * srcMesh, SamplingMethod samplingMethod)
 		this->totalMeshArea = 0;
 
 		Surface_mesh::Face_iterator fit, fend = mesh->faces_end();
-		for (fit = mesh->faces_begin(); fit != fend; ++fit)
+        for(auto fit : mesh->faces())
             totalMeshArea += farea[fit];
 
-        for (fit = mesh->faces_begin(); fit != fend; ++fit)
+        for(auto fit : mesh->faces())
             fprobability[fit] = farea[fit] / totalMeshArea;
 
         interval = std::vector<AreaFace>(mesh->n_faces() + 1);
@@ -38,7 +39,7 @@ Sampler::Sampler(SurfaceMesh::Model * srcMesh, SamplingMethod samplingMethod)
 		int i = 0;
 
 		// Compute mesh area in a cumulative manner
-        foreach(Face f, mesh->faces())
+        for(auto f : mesh->faces())
 		{
             interval[f.idx()+1] = AreaFace(interval[i].area + fprobability[f], f);
 			i++;
@@ -103,8 +104,8 @@ std::vector<SamplePoint> Sampler::getSamples(int numberSamples, double weight)
 Vector3 Sampler::getBaryFace( Surface_mesh::Face f, double U, double V )
 {
     QVector<Vector3> v;
-    Surface_mesh::Vertex_around_face_circulator vit = mesh->vertices(f),vend=vit;
-    do{ v.push_back(points[vit]); } while(++vit != vend);
+
+    for(auto vit : mesh->vertices(f)) v.push_back(points[vit]);
 
     if(U == 1.0) return v[1];
     if(V == 1.0) return v[2];

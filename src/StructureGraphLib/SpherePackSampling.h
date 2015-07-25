@@ -8,14 +8,14 @@ using namespace Eigen;
 class SpherePackSampling{
 
 public:
-    static std::vector<Vector3d> sample(SurfaceMesh::Model * m, int randomSampleCount, double r)
+    static std::vector<Vector3d> sample(SurfaceMeshModel * m, int randomSampleCount, double r)
     {
         std::vector<Vector3d> gridPoints = std::vector<Vector3d>();
 		std::vector<Vector3d> normals;
         return sample(m, randomSampleCount, r, gridPoints, normals);
     }
 
-    static std::vector<Vector3d> sample(SurfaceMesh::Model * m, int randomSampleCount, double r, 
+    static std::vector<Vector3d> sample(SurfaceMeshModel * m, int randomSampleCount, double r,
         std::vector<Vector3d> & gridPoints, std::vector<Vector3d> & normals, int density = 1)
 	{
         std::vector<Vector3d> samples, rndNormals, centers;
@@ -58,7 +58,7 @@ public:
 		return samples;
 	}
 
-    static std::vector<Vector3d> getRandomSamples(SurfaceMesh::Model * m, int randomSampleCount, std::vector<Vector3d> & rndNormals)
+    static std::vector<Vector3d> getRandomSamples(SurfaceMeshModel * m, int randomSampleCount, std::vector<Vector3d> & rndNormals)
     {
         std::vector<Vector3d> rndSamples;
         foreach(SamplePoint sp, Sampler(m).getSamples(randomSampleCount)){

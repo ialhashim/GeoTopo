@@ -1,5 +1,5 @@
-include($$[STARLAB])
-StarlabTemplate(none)
+# Eigen library
+include($$PWD/../external/Eigen/Eigen.prf)
 
 TEMPLATE = lib
 CONFIG += staticlib
@@ -64,5 +64,11 @@ SOURCES +=  poissonrecon.cpp \
 win32: QMAKE_CXXFLAGS_RELEASE -= -Zc:strictStrings
 unix:!mac:QMAKE_CXXFLAGS = $$QMAKE_CFLAGS -fpermissive
 mac:QMAKE_LFLAGS += -fopenmp
-mac:QMAKE_CXXFLAGS += -fopenmp
-
+win32{
+    QMAKE_CXXFLAGS *= /openmp
+    QMAKE_CXXFLAGS *= /MP
+}
+unix:!mac{
+    QMAKE_CXXFLAGS *= -fopenmp
+    LIBS += -lgomp
+}

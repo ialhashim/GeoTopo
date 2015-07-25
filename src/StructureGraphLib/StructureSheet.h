@@ -31,31 +31,31 @@ struct Sheet : public Node
 	int numVCtrlPnts();
 
 	// Modifiers
-	void moveBy( const Vector3d & delta );
+    void moveBy( const Vector3 & delta );
 	void scale( Scalar scaleFactor );
 	void rotate( double angle, Vector3 axis );
-    std::vector< std::vector<Vector3d> > foldTo( const Array1D_Vector4d & curve, bool isApply = false );
+    std::vector< std::vector<Vector3> > foldTo( const Array1D_Vector4 & curve, bool isApply = false );
 	void refineControlPoints(int nU, int nV = 0);
 	void equalizeControlPoints( Structure::Node * other );
-	void deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid );
-	void deformTwoHandles( Vector4d& handleA, Vector3 newPosA, Vector4d& handleB, Vector3 newPosB );
-	NURBS::NURBSCurved convertToNURBSCurve(Vector3d p, Vector3d dir); 
+    void deformTo(const Vector4 &handle, const Vector3 & to, bool isRigid );
+    void deformTwoHandles( Vector4& handleA, Vector3 newPosA, Vector4& handleB, Vector3 newPosB );
+    NURBS::NURBSCurved convertToNURBSCurve(Vector3 p, Vector3 dir);
 
     Array1D_Vector3 discretizedAsCurve(Scalar resolution);
 	Array2D_Vector3 discretized(Scalar resolution);
-	Array2D_Vector4d discretizedPoints(Scalar resolution);
+    Array2D_Vector4 discretizedPoints(Scalar resolution);
 
 	// Coordinates
-    void get( const Vector4d& coordinates, Vector3 & pos, std::vector<Vector3> & frame );
-	Vector3 position( const Vector4d& coordinates );
-	Vector4d approxCoordinates( const Vector3 & pos );
+    void get( const Vector4& coordinates, Vector3 & pos, std::vector<Vector3> & frame );
+    Vector3 position( const Vector4& coordinates );
+    Vector4 approxCoordinates( const Vector3 & pos );
 	Vector3 approxProjection( const Vector3 & point );
 	Vector3 center();
 
 	// Geometric properties
-	Scalar area();
-    Scalar length();
-    SurfaceMesh::Scalar avgEdgeLength();
+    double area();
+    double length();
+    double avgEdgeLength();
 
 	// Encode and decode
 	static SheetEncoding encodeSheet( Sheet * sheet, Vector3 origin, Vector3 X, Vector3 Y, Vector3 Z );

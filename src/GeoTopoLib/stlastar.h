@@ -165,7 +165,7 @@ public: // methods
 	}
 
 	// Advances search one step 
-	unsigned int SearchStep(int num_solutions, int max_open_set)
+        unsigned int SearchStep(int num_solutions/*, int max_open_set*/)
 	{
 		// Firstly break if the user has not initialized the search
 		assert( (m_State > SEARCH_STATE_NOT_INITIALISED) && (m_State < SEARCH_STATE_INVALID) );

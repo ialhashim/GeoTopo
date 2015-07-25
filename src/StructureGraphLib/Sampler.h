@@ -1,10 +1,9 @@
 #pragma once
 
 #include "SurfaceMeshModel.h"
-#include "SurfaceMeshHelper.h"
-#include "FaceBarycenterHelper.h"
 
-using namespace SurfaceMesh;
+using namespace opengp;
+using namespace opengp::SurfaceMesh;
 
 // Helper structures
 struct SamplePoint{
@@ -48,13 +47,13 @@ public:
 	
 	SamplingMethod method;
 
-    Sampler(SurfaceMesh::Model * srcMesh = NULL, SamplingMethod samplingMethod = RANDOM_BARYCENTRIC );
+    Sampler(SurfaceMeshModel * srcMesh = NULL, SamplingMethod samplingMethod = RANDOM_BARYCENTRIC );
 	Sampler(void * srcMesh, SamplingMethod samplingMethod);
 	// Get samples
 	SamplePoint getSample(double weight = 0.0);
     std::vector<SamplePoint> getSamples(int numberSamples, double weight = 0.0);
 
-    SurfaceMesh::Model * mesh;
+    SurfaceMeshModel * mesh;
 	double totalMeshArea;
 
 	// For Monte Carlo

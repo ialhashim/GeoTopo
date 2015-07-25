@@ -62,9 +62,9 @@ void GraphDistance::prepareNodes( Scalar resolution, const std::vector<Vector3> 
 		samplePoints[node] = std::vector<Vector3>();
 
 		std::vector<Vector3> pointList;
-		Array1D_Vector4d coordList;
+		Array1D_Vector4 coordList;
 
-		Array2D_Vector4d coords = node->discretizedPoints( resolution );
+        Array2D_Vector4 coords = node->discretizedPoints( resolution );
 
 		// Zero area?
 		//if (coords.empty()) 
@@ -72,7 +72,7 @@ void GraphDistance::prepareNodes( Scalar resolution, const std::vector<Vector3> 
 		//	excludeNodes.push_back(node->id);
 		//	continue;
 		//}
-		if (coords.empty()) coords.push_back( Array1D_Vector4d(1, Vector4d(0,0,0,0)) );
+		if (coords.empty()) coords.push_back( Array1D_Vector4(1, Vector4d(0,0,0,0)) );
 
 		Array2D_Vector3 discretization = node->getPoints( coords );
 		nodeCount[node] = std::make_pair(discretization.size(), discretization.front().size());
@@ -505,7 +505,7 @@ Array1D_Vector3 GraphDistance::positionalPath( Structure::Graph * graph, QVector
 
 	// To ensure unique points
 	std::vector<size_t> xrefs;
-	weld(pnts, xrefs, std::hash_Vector3d(), std::equal_to<Vector3d>());
+    weld(pnts, xrefs, std::hash_Vector3d(), std::equal_to<Eigen::Vector3d>());
 
 	return smoothPolyline(pnts, smoothingIters);
 }

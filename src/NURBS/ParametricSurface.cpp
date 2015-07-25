@@ -67,11 +67,11 @@ void ParametricSurface<Real>::GetFrame (Real u, Real v,
     tangent1 = PV(u, v);
     tangent0.normalize();  // T0
     tangent1.normalize();  // temporary T1 just to compute N
-    normal = cross(tangent0, tangent1).normalized();  // N
+    normal = tangent0.cross(tangent1).normalized();  // N
 
     // The normalized first derivatives are not necessarily orthogonal.
     // Recompute T1 so that {T0,T1,N} is an orthonormal set.
-    tangent1 = cross(normal,tangent0);
+    tangent1 = normal.cross(tangent0);
 }
 //----------------------------------------------------------------------------
 template <typename Real>
@@ -110,18 +110,18 @@ void ParametricSurface<Real>::ComputePrincipalCurvatureInfo (Real u, Real v,
 
     // Compute the metric tensor.
     Matrix2<Real> metricTensor;
-    metricTensor[0][0] = dot(derU,derU);
-    metricTensor[0][1] = dot(derU,derV);
+    metricTensor[0][0] = derU.dot(derU);
+    metricTensor[0][1] = derU.dot(derV);
     metricTensor[1][0] = metricTensor[0][1];
-    metricTensor[1][1] = dot(derV,derV);
+    metricTensor[1][1] = derV.dot(derV);
 
     // Compute the curvature tensor.
-    Vector3 normal = cross(derU,derV).normalized();
+    Vector3 normal = derU.cross(derV).normalized();
     Matrix2<Real> curvatureTensor;
-    curvatureTensor[0][0] = -dot(normal, derUU);
-    curvatureTensor[0][1] = -dot(normal, derUV);
+    curvatureTensor[0][0] = -normal.dot(derUU);
+    curvatureTensor[0][1] = -normal.dot(derUV);
     curvatureTensor[1][0] = curvatureTensor[0][1];
-    curvatureTensor[1][1] = -dot(normal, derVV);
+    curvatureTensor[1][1] = -normal.dot(derVV);
 
     // Characteristic polynomial is 0 = det(B-kG) = c2*k^2+c1*k+c0.
     Real c0 = curvatureTensor.Determinant();
@@ -163,7 +163,7 @@ void ParametricSurface<Real>::ComputePrincipalCurvatureInfo (Real u, Real v,
     dir0.normalize();
 
     // Second tangent is cross product of first tangent and normal.
-    dir1 = cross(dir0, normal);
+    dir1 = dir0.cross(normal);
 }
 //----------------------------------------------------------------------------
 

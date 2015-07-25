@@ -4,7 +4,7 @@
 using namespace Structure;
 
 Q_DECLARE_METATYPE(Structure::Node*)
-Q_DECLARE_METATYPE(std::vector<Array1D_Vector4d>)
+Q_DECLARE_METATYPE(std::vector<Array1D_Vector4>)
 
 Link::Link( Node * node1, Node * node2, LinkCoords coord_n1, LinkCoords coord_n2, QString link_type, QString ID )
 {
@@ -23,7 +23,7 @@ Link::~Link()
 	property.clear();
 }
 
-void Link::setCoord( QString nodeID, Array1D_Vector4d newCoord )
+void Link::setCoord( QString nodeID, Array1D_Vector4 newCoord )
 {
 	if(n1->id == nodeID) coord[0] = newCoord;
 	if(n2->id == nodeID) coord[1] = newCoord;
@@ -31,7 +31,7 @@ void Link::setCoord( QString nodeID, Array1D_Vector4d newCoord )
 	//qDebug() << QString("Coordinates changed for %1").arg(nodeID);
 }
 
-void Link::setCoordOther( QString nodeID, Array1D_Vector4d newCoord )
+void Link::setCoordOther( QString nodeID, Array1D_Vector4 newCoord )
 {
 	if(n1->id == nodeID) coord[1] = newCoord;
 	if(n2->id == nodeID) coord[0] = newCoord;
@@ -39,25 +39,25 @@ void Link::setCoordOther( QString nodeID, Array1D_Vector4d newCoord )
 	//qDebug() << QString("Coordinates changed for %1").arg(n1->id == nodeID ? n2->id : n1->id);
 }
 
-Array1D_Vector4d Link::getCoord( QString nodeID )
+Array1D_Vector4 Link::getCoord( QString nodeID )
 {
 	if(n1->id == nodeID) return coord[0];
 	if(n2->id == nodeID) return coord[1];
-	return Array1D_Vector4d(1,Vector4d(0,0,0,0));
+	return Array1D_Vector4(1,Vector4d(0,0,0,0));
 }
 
-Array1D_Vector4d Link::getCoordOther( QString nodeID )
+Array1D_Vector4 Link::getCoordOther( QString nodeID )
 {
 	return getCoord(otherNode(nodeID)->id);
 }
 
 Vector4d Link::getMiddleCoord( QString nodeID )
 {
-	Array1D_Vector4d nodeCoords = getCoord(nodeID);
+	Array1D_Vector4 nodeCoords = getCoord(nodeID);
 	return nodeCoords[ nodeCoords.size() / 2 ];
 }
 
-void Link::replace(QString oldNodeID, Node *newNode, Array1D_Vector4d newCoord)
+void Link::replace(QString oldNodeID, Node *newNode, Array1D_Vector4 newCoord)
 {
 	if(!newNode || oldNodeID == newNode->id) return;
 
@@ -79,7 +79,7 @@ void Link::replace(QString oldNodeID, Node *newNode, Array1D_Vector4d newCoord)
     qDebug() << QString("Link replace [%1] to [%2]").arg(oldID, id);
 }
 
-void Link::replaceForced(QString oldNodeID, Node *newNode, Array1D_Vector4d newCoord)
+void Link::replaceForced(QString oldNodeID, Node *newNode, Array1D_Vector4 newCoord)
 {
     if(n1->id != oldNodeID && n2->id != oldNodeID) return;
     if(!newNode) return;
@@ -229,9 +229,9 @@ void Link::invertCoords( QString nodeID )
 	if(nodeID == n2->id) coord[1] = inverseCoords(coord[1]);
 }
 
-Vector3d Link::delta()
+Vector3 Link::delta()
 {
-	Vector3d d(0,0,0), p1(0,0,0), p2(0,0,0);
+    Vector3 d(0,0,0), p1(0,0,0), p2(0,0,0);
 
 	if(n1 && n2)
 	{

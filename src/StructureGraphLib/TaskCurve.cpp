@@ -41,7 +41,7 @@ void TaskCurve::prepareShrinkCurveOneEdge( Link* l )
 
 	// Curve folding
 	Array1D_Vector3 deltas = structure_curve->foldTo( coordSelf, false );
-	deltas = inverseVectors3(deltas);
+    deltas = NURBS::inverseVectors3(deltas);
 
 	// Growing / shrinking instructions
 	property["deltas"].setValue( deltas );
@@ -76,8 +76,8 @@ void TaskCurve::prepareShrinkCurve()
 		// Links and positions (on myself)
 		Link * linkA = edges.front();
 		Link * linkB = edges.back();
-		Vector3d pointA = linkA->position( n->id );
-		Vector3d pointB = linkB->position( n->id );
+        Vector3 pointA = linkA->position( n->id );
+        Vector3 pointB = linkB->position( n->id );
 
 		// Geodesic distance between two link positions on the active graph excluding the running tasks and ungrown tasks
 		QVector< GraphDistance::PathPointPair > path;
@@ -91,7 +91,7 @@ void TaskCurve::prepareShrinkCurve()
 
 		// Use the center of the path as the end point
 		GraphDistance::PathPointPair endPointCoord = path[path.size() / 2];
-		Vector3d endPoint = endPointCoord.position(active);
+        Vector3 endPoint = endPointCoord.position(active);
 
 		// Separate the path into two for linkA and linkB
 		// Need old number of positions to shrink to null
@@ -216,8 +216,8 @@ void TaskCurve::prepareGrowCurve()
 
 		Node *otherA = active->getNode( totherA->property["correspond"].toString() );
 		Node *otherB = active->getNode( totherB->property["correspond"].toString() );
-		Vector3d pointA = otherA->position(othercoordA);
-		Vector3d pointB = otherB->position(othercoordB);
+        Vector3 pointA = otherA->position(othercoordA);
+        Vector3 pointB = otherB->position(othercoordB);
 
 		// Geodesic distance between two link positions on the active graph excluding the running tasks
 		QVector<QString> excludeNodes = active->property["activeTasks"].value< QVector<QString> >();
@@ -236,7 +236,7 @@ void TaskCurve::prepareGrowCurve()
 
 		// Use the center of the path as the start point
 		GraphDistance::PathPointPair startPointCoord = path[path.size() / 2];
-		Vector3d startPoint = startPointCoord.position( active );
+        auto startPoint = startPointCoord.position( active );
 
 		// Separate the path into two for linkA and linkB
 		int N = path.size(), hN = N / 2;
@@ -276,7 +276,7 @@ void TaskCurve::prepareGrowCurve()
 	}
 }
 
-void TaskCurve::encodeCurve( const Vector4d& coordinateA, const Vector4d& coordinateB )
+void TaskCurve::encodeCurve( const Eigen::Vector4d& coordinateA, const Eigen::Vector4d& coordinateB )
 {
 	Node * n = node(), *tn = targetNode();
 
@@ -351,9 +351,9 @@ void TaskCurve::prepareCrossingMorphCurve()
 	{
 		// Start and end
 		Link * link = edges.front();
-		Vector3d start = link->positionOther(n->id);
+        auto start = link->positionOther(n->id);
 		NodeCoord futureNodeCord = futureLinkCoord(link);
-		Vector3d end = active->position(futureNodeCord.first,futureNodeCord.second);
+        auto end = active->position(futureNodeCord.first,futureNodeCord.second);
 
 		// Geodesic distances on the active graph excluding the running tasks
 		QVector< GraphDistance::PathPointPair > path;
@@ -400,11 +400,11 @@ void TaskCurve::prepareCrossingMorphCurve()
 		NodeCoord futureNodeCordA = futureLinkCoord(linkA);
 		NodeCoord futureNodeCordB = futureLinkCoord(linkB);
 
-		Vector3d startA = linkA->positionOther(n->id);
-		Vector3d endA = active->position(futureNodeCordA.first,futureNodeCordA.second);
+        auto startA = linkA->positionOther(n->id);
+        auto endA = active->position(futureNodeCordA.first,futureNodeCordA.second);
 
-		Vector3d startB = linkB->positionOther(n->id);
-		Vector3d endB = active->position(futureNodeCordB.first,futureNodeCordB.second);
+        auto startB = linkB->positionOther(n->id);
+        auto endB = active->position(futureNodeCordB.first,futureNodeCordB.second);
 
 		// Geodesic distances on the active graph excluding the running tasks
 		QVector< GraphDistance::PathPointPair > pathA, pathB;
@@ -508,7 +508,7 @@ void TaskCurve::foldCurve( double t )
 	Vector3 posOnBase = l->positionOther(n->id);
 
 	// Get delta 
-	Vector3 delta = l->property["blendedDelta"].value<Vector3d>();
+    Vector3 delta = l->property["blendedDelta"].value<Vector3>();
 
 	if(this->type == Task::GROW) 
 	{
@@ -543,14 +543,14 @@ void TaskCurve::executeCrossingCurve( double t )
 
 		// Blend Deltas, directions are the same as source
         Structure::Link *slink = edges.front();
-		Vector3d sDelta = slink->property["delta"].value<Vector3d>();
-		if (type == Task::GROW) sDelta = Vector3d(0,0,0);
+        auto sDelta = slink->property["delta"].value<Vector3>();
+        if (type == Task::GROW) sDelta = Eigen::Vector3d(0,0,0);
 
 		Structure::Link* tlink = target->getEdge(slink->property["correspond"].toInt());
-		Vector3d tDelta = tlink->property["delta"].value<Vector3d>();
-		if (type == Task::SHRINK) tDelta = Vector3d(0,0,0);
+        auto tDelta = tlink->property["delta"].value<Vector3>();
+        if (type == Task::SHRINK) tDelta = Eigen::Vector3d(0,0,0);
 
-		Vector3d delta = AlphaBlend(t, sDelta, tDelta);
+        Vector3 delta = AlphaBlend(t, sDelta, tDelta);
 
 		// Deltas to myself
 		if (slink->n1->id == n->id) delta *= -1;
@@ -584,18 +584,18 @@ void TaskCurve::executeCrossingCurve( double t )
 
 		// Blend Deltas, directions are the same as source
 		Structure::Link *slinkA = edges.front(), *slinkB = edges.back();
-		Vector3d sDeltaA = slinkA->property["delta"].value<Vector3d>();
-		Vector3d sDeltaB = slinkB->property["delta"].value<Vector3d>();
-		if (type == Task::GROW) {sDeltaA = Vector3d(0,0,0); sDeltaB = Vector3d(0,0,0);}
+        auto sDeltaA = slinkA->property["delta"].value<Eigen::Vector3d>();
+        auto sDeltaB = slinkB->property["delta"].value<Eigen::Vector3d>();
+        if (type == Task::GROW) {sDeltaA = Eigen::Vector3d(0,0,0); sDeltaB = Eigen::Vector3d(0,0,0);}
 
 		Structure::Link* tlinkA = target->getEdge(slinkA->property["correspond"].toInt());
 		Structure::Link* tlinkB = target->getEdge(slinkB->property["correspond"].toInt());
-		Vector3d tDeltaA = tlinkA->property["delta"].value<Vector3d>();
-		Vector3d tDeltaB = tlinkB->property["delta"].value<Vector3d>();
-		if (type == Task::SHRINK) {tDeltaA = Vector3d(0,0,0); tDeltaB = Vector3d(0,0,0);}
+        auto tDeltaA = tlinkA->property["delta"].value<Eigen::Vector3d>();
+        auto tDeltaB = tlinkB->property["delta"].value<Eigen::Vector3d>();
+        if (type == Task::SHRINK) {tDeltaA = Eigen::Vector3d(0,0,0); tDeltaB = Eigen::Vector3d(0,0,0);}
 
-		Vector3d deltaA = AlphaBlend(t, sDeltaA, tDeltaA);
-		Vector3d deltaB = AlphaBlend(t, sDeltaB, tDeltaB);
+        Vector3 deltaA = AlphaBlend(t, sDeltaA, tDeltaA);
+        Vector3 deltaB = AlphaBlend(t, sDeltaB, tDeltaB);
 
 		// Deltas to myself
 		if (slinkA->n1->id == n->id) deltaA *= -1;

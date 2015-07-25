@@ -2,11 +2,11 @@
 
 #include "hausdorff.h"
 
-#include "helpers/PhysicsHelper.h"
+#include "PhysicsHelper.h"
 
 int EvaluateCorrespondence::numSamples = 5;
 
-Q_DECLARE_METATYPE(Array1D_Vector4d);
+Q_DECLARE_METATYPE(Array1D_Vector4);
 
 Array1D_Vector3 coupledNormals(Structure::Link * l){
 	Array1D_Vector3 normals;
@@ -26,15 +26,15 @@ Array1D_Vector3 coupledNormals(Structure::Link * l){
 
 Array1D_Vector3 EvaluateCorrespondence::spokesFromLink(Structure::ShapeGraph * shape, Structure::Link * l, bool isFindCoordClosest)
 {
-	auto samples1 = l->n1->property["samples_coords"].value<Array2D_Vector4d>();
-	auto samples2 = l->n2->property["samples_coords"].value<Array2D_Vector4d>();
+    auto samples1 = l->n1->property["samples_coords"].value<Array2D_Vector4>();
+    auto samples2 = l->n2->property["samples_coords"].value<Array2D_Vector4>();
 
 	if (samples1.empty()) samples1 = EvaluateCorrespondence::sampleNode(shape, l->n1, 0);
 	if (samples2.empty()) samples1 = EvaluateCorrespondence::sampleNode(shape, l->n2, 0);
 
 	double min_spoke_len = DBL_MAX;
-	Array1D_Vector4d cur_coords(2, Eigen::Vector4d(0, 0, 0, 0));
-	std::vector < Array1D_Vector4d > spoke_coords;
+	Array1D_Vector4 cur_coords(2, Eigen::Vector4d(0, 0, 0, 0));
+	std::vector < Array1D_Vector4 > spoke_coords;
 
 	Array1D_Vector3 spokes;
 	for (auto rowi : samples1) for (auto ci : rowi)
@@ -61,15 +61,18 @@ Array1D_Vector3 EvaluateCorrespondence::spokesFromLink(Structure::ShapeGraph * s
 	return spokes;
 }
 
-Array2D_Vector4d EvaluateCorrespondence::sampleNode(Structure::ShapeGraph * shape, Structure::Node * n, double resolution)
+Array2D_Vector4 EvaluateCorrespondence::sampleNode(Structure::ShapeGraph * shape, Structure::Node * n, double resolution)
 {
-	Array2D_Vector4d samples_coords;
+    Q_UNUSED(resolution)
+    Q_UNUSED(shape)
+
+    Array2D_Vector4 samples_coords;
 
 	auto regularSamples = [&](int num_samples, bool isCurve){
-		Array2D_Vector4d samplesCoords;
+        Array2D_Vector4 samplesCoords;
 		double step = 1.0 / num_samples;
 		for (double u = 0; u <= 1.0; u += step){
-			Array1D_Vector4d row;
+			Array1D_Vector4 row;
 			for (double v = 0; v <= 1.0; v += step)
 				row.push_back(Eigen::Vector4d(v, u, 0, 0));
 			samplesCoords.push_back(row);
@@ -217,7 +220,7 @@ QMap<QString, NanoKdTree*> EvaluateCorrespondence::kdTreesNodes(Structure::Shape
 {
 	QMap < QString, NanoKdTree* > result;
 
-	auto buildKdTree = [](Structure::Node * n, const Array2D_Vector4d & coords){
+    auto buildKdTree = [](Structure::Node * n, const Array2D_Vector4 & coords){
 		auto t = new NanoKdTree;
 		for (auto row : coords) for (auto coord : row) t->addPoint(n->position(coord));
 		t->build();
@@ -226,7 +229,7 @@ QMap<QString, NanoKdTree*> EvaluateCorrespondence::kdTreesNodes(Structure::Shape
 
 	for (auto n : shape->nodes)
 	{
-		auto coords = n->property["samples_coords"].value<Array2D_Vector4d>();
+        auto coords = n->property["samples_coords"].value<Array2D_Vector4>();
 		if (coords.empty()) coords = EvaluateCorrespondence::sampleNode(shape, n, 0);
 		result[n->id] = buildKdTree(n, coords);
 	}
@@ -264,7 +267,7 @@ double EvaluateCorrespondence::RMSD(Structure::ShapeGraph * shapeA, Structure::S
 	auto sampleShape = [&](Structure::ShapeGraph * shape){
 		std::vector<Vector3> samples;
 		for (auto n : shape->nodes){
-			auto coords = n->property["samples_coords"].value<Array2D_Vector4d>();
+            auto coords = n->property["samples_coords"].value<Array2D_Vector4>();
 			if (coords.empty()) coords = EvaluateCorrespondence::sampleNode(shape, n, 0);
 			for (auto row : coords) for (auto c : row) samples.push_back(n->position(c));
 		}
@@ -310,6 +313,9 @@ double EvaluateCorrespondence::evaluate2(Energy::SearchNode * searchNode)
 {
 	auto shape = searchNode->shapeA.data();
 	auto targetShape = searchNode->shapeB.data();
+
+    Q_UNUSED(shape)
+    Q_UNUSED(targetShape)
 
 	QVector<double> feature_vector;
 
@@ -408,10 +414,10 @@ double EvaluateCorrespondence::evaluate(Energy::SearchNode * searchNode)
 		auto current_spokes = EvaluateCorrespondence::spokesFromLink(shape, l);
 
 		// Sliding
-		auto spoke_coords = l->property["spoke_coords"].value< std::vector < Array1D_Vector4d > >();
+		auto spoke_coords = l->property["spoke_coords"].value< std::vector < Array1D_Vector4 > >();
 		auto spoke_closest_idx = l->property["spoke_closest_idx"].toInt();
-		auto samples1 = l->n1->property["samples_coords"].value<Array2D_Vector4d>();
-		auto samples2 = l->n2->property["samples_coords"].value<Array2D_Vector4d>();
+        auto samples1 = l->n1->property["samples_coords"].value<Array2D_Vector4>();
+        auto samples2 = l->n2->property["samples_coords"].value<Array2D_Vector4>();
 
 		/// (a) Connection: difference in closeness distance
 		double connection_weight = 1.0;
@@ -446,7 +452,7 @@ double EvaluateCorrespondence::evaluate(Energy::SearchNode * searchNode)
 				auto orig_closest1 = spoke_coords[spoke_closest_idx].front();
 				auto orig_closest2 = spoke_coords[spoke_closest_idx].back();
 
-				auto closestCoords = [&](const Vector3 & p, Structure::Node * n, Array2D_Vector4d coords){
+                auto closestCoords = [&](const Vector3 & p, Structure::Node * n, Array2D_Vector4 coords){
 					double min_dist = DBL_MAX;
 					Eigen::Vector4d min_coord(0, 0, 0, 0);
 					for (auto row : coords){
@@ -504,7 +510,7 @@ double EvaluateCorrespondence::evaluate(Energy::SearchNode * searchNode)
 		for (auto v : link_vector) distortion_vector << v;
 
 		double sum_link_vector = 0; for (auto v : link_vector) sum_link_vector += v;
-		double avg_link_vector = sum_link_vector / link_vector.size();
+        //double avg_link_vector = sum_link_vector / link_vector.size();
 
 		// Logging:
 		qSort(link_vector);

@@ -621,13 +621,13 @@ void GraphCorresponder::computeOrientationDiffMatrix( MATRIX & M )
 					Vector3 tV = t01 - t00;
 
 					// Normals
-					vec1 = cross(sU, sV);
-					vec2 = cross(tU, tV);
+                    vec1 = sU.cross(sV);
+                    vec2 = tU.cross(tV);
 				}
 
 				vec1.normalize();
 				vec2.normalize();
-				M[i][j] = 1.0 - abs(dot(vec1, vec2));
+                M[i][j] = 1.0 - abs(vec1.dot(vec2));
 			}
 		}
 	}
@@ -930,9 +930,9 @@ void GraphCorresponder::correspondTwoSheets( Structure::Sheet *sSheet, Structure
 	Vector3 tV = t01 - t00;
 
 	// Flip if need
-	Vector3 sUV = cross(sU, sV);
-	Vector3 tUV = cross(tU, tV);
-	if (dot(sUV, tUV) < 0)
+    Vector3 sUV = sU.cross(sV);
+    Vector3 tUV = tU.cross(tV);
+    if (sUV.dot(tUV) < 0)
 	{
 		// Reverse the target along u direction
 		std::reverse(tCtrlPoint.begin(), tCtrlPoint.end());
@@ -945,14 +945,14 @@ void GraphCorresponder::correspondTwoSheets( Structure::Sheet *sSheet, Structure
 
 		// Update the coordinates of links
 		foreach( Structure::Link * l, tgt->getEdges(tSheet->id) ){
-			Array1D_Vector4d oldCoord = l->getCoord(tSheet->id), newCoord;
-			foreach(Vector4d c, oldCoord) newCoord.push_back(Vector4d(1-c[0], c[1], c[2], c[3]));
+			Array1D_Vector4 oldCoord = l->getCoord(tSheet->id), newCoord;
+            for(auto c : oldCoord) newCoord.push_back(Eigen::Vector4d(1-c[0], c[1], c[2], c[3]));
 			l->setCoord(tSheet->id, newCoord);
 		}
 	}
 
 	// Rotate if need
-	Scalar cosAngle = dot(sU.normalized(), tU.normalized());
+    Scalar cosAngle = sU.normalized().dot(tU.normalized());
 	Scalar cos45 = sqrtf(2.0) / 2;
 
 	// Do Nothing
@@ -984,16 +984,16 @@ void GraphCorresponder::correspondTwoSheets( Structure::Sheet *sSheet, Structure
 
 		// Update the coordinates of links
 		foreach( Structure::Link * l, tgt->getEdges(tSheet->id) ){
-			Array1D_Vector4d oldCoord = l->getCoord(tSheet->id), newCoord;
-			foreach(Vector4d c, oldCoord) newCoord.push_back(Vector4d(1-c[0], 1-c[1], c[2], c[3]));
+			Array1D_Vector4 oldCoord = l->getCoord(tSheet->id), newCoord;
+            for(auto c : oldCoord) newCoord.push_back(Eigen::Vector4d(1-c[0], 1-c[1], c[2], c[3]));
 			l->setCoord(tSheet->id, newCoord);
 		}
 	}
 	// Rotate 90 degrees 
 	else
 	{
-		Vector3 stU = cross(sU, tU);
-		if (dot(stU, sUV) >= 0)
+        Vector3 stU = sU.cross(tU);
+        if (stU.dot(sUV) >= 0)
 		{
 			//  --> sV		tV
 			// |			|
@@ -1007,8 +1007,8 @@ void GraphCorresponder::correspondTwoSheets( Structure::Sheet *sSheet, Structure
 
 			// Update the coordinates of links
 			foreach( Structure::Link * l, tgt->getEdges(tSheet->id) ){
-				Array1D_Vector4d oldCoord = l->getCoord(tSheet->id), newCoord;
-				foreach(Vector4d c, oldCoord) newCoord.push_back(Vector4d(1- c[1], c[0], c[2], c[3]));
+				Array1D_Vector4 oldCoord = l->getCoord(tSheet->id), newCoord;
+                for(auto c : oldCoord) newCoord.push_back(Eigen::Vector4d(1- c[1], c[0], c[2], c[3]));
 				l->setCoord(tSheet->id, newCoord);
 			}
 		}
@@ -1026,8 +1026,8 @@ void GraphCorresponder::correspondTwoSheets( Structure::Sheet *sSheet, Structure
 
 			// Update the coordinates of links
 			foreach( Structure::Link * l, tgt->getEdges(tSheet->id) ){
-				Array1D_Vector4d oldCoord = l->getCoord(tSheet->id), newCoord;
-				foreach(Vector4d c, oldCoord) newCoord.push_back(Vector4d(c[1], 1- c[0], c[2], c[3]));
+				Array1D_Vector4 oldCoord = l->getCoord(tSheet->id), newCoord;
+                for(auto c : oldCoord) newCoord.push_back(Eigen::Vector4d(c[1], 1- c[0], c[2], c[3]));
 				l->setCoord(tSheet->id, newCoord);
 			}
 		}

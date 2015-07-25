@@ -53,8 +53,8 @@ void TaskSheet::prepareSheetOneEdge( Structure::Link * l )
 
     // Sheet folding:
 	Structure::Sheet targetCopy (*((Structure::Sheet*)tn));
-    Array2D_Vector3 deltas = targetCopy.foldTo( Array1D_Vector4d(1, coord), (this->type == GROW) );
-    if (this->type != GROW) deltas = inverseVectors3(deltas);
+    Array2D_Vector3 deltas = targetCopy.foldTo( Array1D_Vector4(1, coord), (this->type == GROW) );
+    if (this->type != GROW) deltas = NURBS::inverseVectors3(deltas);
 
     // Growing / shrinking instructions
     property["deltas"].setValue( deltas );
@@ -69,8 +69,8 @@ void TaskSheet::prepareSheetTwoEdges( Structure::Link * linkA, Structure::Link *
 	Structure::Link * tlinkA = target->getEdge( linkA->property["correspond"].toInt() );
 	Structure::Link * tlinkB = target->getEdge( linkB->property["correspond"].toInt() );
 
-    Vector3d pointA = linkA->positionOther(n->id);
-    Vector3d pointB = linkB->positionOther(n->id);
+    Vector3 pointA = linkA->positionOther(n->id);
+    Vector3 pointB = linkB->positionOther(n->id);
 
     // Geodesic distance between two link positions on the active graph excluding the running tasks
     QVector<QString> exclude = active->property["activeTasks"].value< QVector<QString> >();
@@ -94,7 +94,7 @@ void TaskSheet::prepareSheetTwoEdges( Structure::Link * linkA, Structure::Link *
 
     // Use the center of the path as the start point
     GraphDistance::PathPointPair startPointCoord = path[path.size() / 2];
-    Vector3d startPoint = startPointCoord.position( active );
+    Vector3 startPoint = startPointCoord.position( active );
 
     // Separate the path into two for linkA and linkB
     int N = path.size(), hN = N / 2;
@@ -192,8 +192,8 @@ void TaskSheet::executeGrowShrinkSheet(double t)
 			linkB = target->getEdge(linkB->property["correspond"].toInt());
 		}
 
-		Vector3d deltaA = linkA->property["delta"].value<Vector3d>() * dt;
-		Vector3d deltaB = linkB->property["delta"].value<Vector3d>() * dt;
+        Vector3 deltaA = linkA->property["delta"].value<Vector3>() * dt;
+        Vector3 deltaB = linkB->property["delta"].value<Vector3>() * dt;
 
 		Array1D_Vector3 decoded = Curve::decodeCurve(property["cpCoords"].value<CurveEncoding>(), pointA + deltaA, pointB + deltaB, decodeT);
 		structure_sheet->setControlPoints( decoded );
@@ -298,7 +298,7 @@ void TaskSheet::executeMorphSheet( double t )
     sheet->setControlPoints( blendedPnts );
 }
 
-void TaskSheet::encodeSheet( const Vector4d& coordinateA, const Vector4d& coordinateB )
+void TaskSheet::encodeSheet( const Eigen::Vector4d& coordinateA, const Eigen::Vector4d& coordinateB )
 {
 	Node * n = node(), *tn = targetNode();
 
@@ -329,9 +329,9 @@ void TaskSheet::prepareCrossingSheet()
 	{
 		// Start and end
 		Link * link = edges.front();
-		Vector3d start = link->positionOther(n->id);
+        auto start = link->positionOther(n->id);
 		NodeCoord futureNodeCord = futureLinkCoord(link);
-		Vector3d end = active->position(futureNodeCord.first,futureNodeCord.second);
+        auto end = active->position(futureNodeCord.first,futureNodeCord.second);
 
 		// Geodesic distances on the active graph excluding the running tasks
 		QVector< GraphDistance::PathPointPair > path;

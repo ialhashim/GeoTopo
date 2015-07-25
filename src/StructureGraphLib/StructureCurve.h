@@ -33,10 +33,10 @@ struct Curve : public Node
 	int numCtrlPnts();
 
 	// Modifiers
-	void moveBy( const Vector3d & delta );
+    void moveBy( const Vector3 & delta );
 	void scale( Scalar scaleFactor );
 	void rotate( double angle, Vector3 axis );
-	std::vector<Vector3d> foldTo( Vector4d & foldPoint, bool isApply = false );
+    std::vector<Vector3> foldTo( Vector4d & foldPoint, bool isApply = false );
 	void refineControlPoints(int nU, int nV = 0);
 	void equalizeControlPoints( Structure::Node * other );
 	void deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid );
@@ -44,7 +44,7 @@ struct Curve : public Node
 
     Array1D_Vector3 discretizedAsCurve(Scalar resolution);
 	Array2D_Vector3 discretized(Scalar resolution);
-	Array2D_Vector4d discretizedPoints(Scalar resolution);
+    Array2D_Vector4 discretizedPoints(Scalar resolution);
 
 	// Coordinates
     void get( const Vector4d& coordinates, Vector3 & pos, std::vector<Vector3> & frame );
@@ -61,7 +61,7 @@ struct Curve : public Node
 	// Geometric properties
 	Scalar area();
     Scalar length();
-	Vector3d direction();
+    Vector3 direction();
 
     // Connections
 

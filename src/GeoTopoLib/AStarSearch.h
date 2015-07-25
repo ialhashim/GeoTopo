@@ -105,7 +105,7 @@ namespace AStar
 
 		/// Perform search:
 		{
-			int max_open_set = 10000;
+            //int max_open_set = 10000;
 
 			AStarSearch<PathSearchNode> astarsearch(num_solutions);
 
@@ -117,7 +117,7 @@ namespace AStar
 
 			do
 			{
-				SearchState = astarsearch.SearchStep(num_solutions, max_open_set);
+                SearchState = astarsearch.SearchStep(num_solutions /*, max_open_set*/);
 				(*steps)++;
 			} while (SearchState == AStarSearch<PathSearchNode>::SEARCH_STATE_SEARCHING);
 

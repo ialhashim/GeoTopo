@@ -15,7 +15,7 @@ struct GraphDistanceNode{
 		pos(position),n(node),idx(index),gid(globalID){}
 };
 
-typedef QPair<QString, Vector4d> PathPoint;
+typedef QPair<QString, Eigen::Vector4d> PathPoint;
 
 class GraphDistance
 {
@@ -45,7 +45,7 @@ public:
 	std::map< Structure::Node *, std::pair<int,int> > nodeCount;
 
 	std::vector<Vector3> allPoints;
-	QVector< QPair<QString,Vector4d> > allCoords;
+    QVector< QPair<QString,Eigen::Vector4d> > allCoords;
 	std::vector<double> dists;
 	std::vector<Structure::Node *> correspond;
 	std::set< std::pair<int,int> > jumpPoints;
@@ -57,14 +57,14 @@ public:
 	struct PathPointPair{
 		PathPoint a,b;
 		double wA,wB;
-        PathPointPair(const PathPoint& A = PathPoint("",Vector4d(0,0,0,0))){
+        PathPointPair(const PathPoint& A = PathPoint("",Eigen::Vector4d(0,0,0,0))){
 			a = b = A;
 			wA = 1.0; wB = 0.0;
 		}
 		PathPointPair(PathPoint& A, PathPoint& B, double alpha){
 			a = A;
 			b = B;
-			alpha = qMax(0.0,qMin(alpha,1.0));
+            alpha = std::max(0.0,std::min(alpha,1.0));
 			wA = 1 - alpha; wB = alpha;
 		}
 		Vector3 position(Structure::Graph * graph){
@@ -76,7 +76,7 @@ public:
 
 	double pathTo( Vector3 point, std::vector<Vector3> & path );
 	double pathCoordTo( Vector3 point, QVector< PathPoint > & path );
-	double pathCoordTo( NodeCoord& relativePoint, QVector< QPair<QString, Vector4d> > & path );
+    double pathCoordTo( NodeCoord& relativePoint, QVector< QPair<QString, Eigen::Vector4d> > & path );
 	Structure::Node * closestNeighbourNode( Vector3 to, double resolution = 0.25 );
 	double distance( Vector3 point );
 	void clear();
@@ -85,7 +85,7 @@ public:
 	double smoothPathCoordTo( NodeCoord& relativePoint, QVector< PathPointPair > & smooth_path );
 
 	// Helpers
-	void smoothPath( QVector< QPair<QString, Vector4d> > path, QVector< PathPointPair > & smooth_path );
+    void smoothPath( QVector< QPair<QString, Eigen::Vector4d> > path, QVector< PathPointPair > & smooth_path );
 	static Array1D_Vector3 positionalPath( Structure::Graph * graph, QVector< GraphDistance::PathPointPair > & from_path, int smoothingIters = 0 );
 	
 	// DEBUG:

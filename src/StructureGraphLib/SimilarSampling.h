@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SurfaceMeshHelper.h"
-using namespace SurfaceMesh;
+#include "SurfaceMeshModel.h"
+using namespace opengp::SurfaceMesh;
 
 struct SimilarSampler{
 
@@ -34,7 +34,7 @@ struct SimilarSampler{
 		m->update_vertex_normals();
         Vector3VertexProperty normals = m->vertex_property<Vector3>(VNORMAL);
 
-		foreach(Vertex v, m->vertices()) 
+        for(auto v : m->vertices())
 		{
 			samples.push_back(points[v]);
 			samplesNormals.push_back(normals[v]);

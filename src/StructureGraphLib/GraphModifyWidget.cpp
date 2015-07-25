@@ -4,6 +4,8 @@
 
 Q_DECLARE_METATYPE( Qt::GlobalColor )
 
+using namespace Eigen;
+
 GraphModifyWidget::GraphModifyWidget(Structure::Graph * graph, QWidget *parent) : QDialog(parent), ui(new Ui::GraphModifyWidget)
 {
     this->g = graph;
@@ -95,8 +97,8 @@ void GraphModifyWidget::updateLink()
 	Vector4d coord1(ui->uA->value(), ui->vA->value(), 0, 0);
 	Vector4d coord2(ui->uB->value(), ui->vB->value(), 0, 0);
 
-	l->setCoord(id1, Array1D_Vector4d(1,coord1));
-	l->setCoord(id2, Array1D_Vector4d(1,coord2));
+	l->setCoord(id1, Array1D_Vector4(1,coord1));
+	l->setCoord(id2, Array1D_Vector4(1,coord2));
 
 	emit( updateView() );
 }

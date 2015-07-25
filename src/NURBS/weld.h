@@ -17,14 +17,14 @@ Doc:
 **/
 namespace std {
     struct hash_Vector3d {
-        size_t operator()(Vector3d v) {
+        size_t operator()(const Eigen::Vector3d & v) {
             const unsigned int * h = (const unsigned int *)(&v);
             unsigned int f = (h[0]+h[1]*11-(h[2]*17))&0x7fffffff;     // avoid problems with +-0
             return (f>>22)^(f>>12)^(f);
         }
     };
 	struct hash_Vector3f {
-        size_t operator()(Vector3f v) {
+        size_t operator()(const Eigen::Vector3f & v) {
             const unsigned int * h = (const unsigned int *)(&v);
             unsigned int f = (h[0]+h[1]*11-(h[2]*17))&0x7fffffff;     // avoid problems with +-0
             return (f>>22)^(f>>12)^(f);

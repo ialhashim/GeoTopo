@@ -27,7 +27,7 @@ public:
 
     // Encoding for sheets as curve
     SheetEncoding encodeSheetAsCurve( Structure::Sheet * sheet, Vector3 start, Vector3 end );
-	void encodeSheet( const Vector4d& coordinateA, const Vector4d& coordinateB );
+    void encodeSheet( const Eigen::Vector4d& coordinateA, const Eigen::Vector4d& coordinateB );
 
 	// Quick access
 	Structure::Sheet * targetSheet();

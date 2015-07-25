@@ -7,11 +7,10 @@
 #include <QFileInfo>
 #include <QDir>
 
-#include "SurfaceMeshHelper.h"
+#include "SurfaceMeshModel.h"
 #include "RenderObjectExt.h"
 
 #undef max
-#define qRanged(min, v, max) ( qMax(min, qMin(v, max)) )
 
 typedef QMap< QString, QVariant > PropertyMap;
 
@@ -102,7 +101,7 @@ static inline double signedAngle(const VectorType &a, const VectorType &b, const
 {
 	if(axis.norm() == 0) qDebug() << "warning: zero axis";
 	double cosAngle = a.normalized().dot(b.normalized());
-	double angle = acos( qRanged(-1.0, cosAngle, 1.0) );
+    double angle = acos( std::max(-1.0, std::min(cosAngle, 1.0)) );
 	VectorType c = a.cross(b);
 	if (c.dot(axis) < 0) return -angle;
 	return angle;
@@ -132,7 +131,7 @@ static inline void globalToLocalSpherical( VectorType X, VectorType Y, VectorTyp
 	// Theta: angle from Z [0, PI]
 	// Psi: angle from X on XY plane [0, 2*PI)
 	double dotZ = v.dot(Z);
-	theta = acos( qRanged(-1.0, dotZ, 1.0) );
+    theta = acos( std::max(-1.0, std::min(dotZ, 1.0)) );
 
 	double dotX = v.dot(X);
 	double dotY = v.dot(Y);
@@ -398,7 +397,7 @@ static inline std::vector<std::vector<Type> > transpose(const std::vector<std::v
 	return result;
 }
 
-static void saveOBJ(SurfaceMesh::Model * mesh, QString filename)
+static void saveOBJ(opengp::SurfaceMesh::SurfaceMeshModel * mesh, QString filename)
 {
 	QFile file(filename);
 
@@ -411,13 +410,13 @@ static void saveOBJ(SurfaceMesh::Model * mesh, QString filename)
 	
 	QTextStream out(&file);
 	out << "# NV = " << mesh->n_vertices() << " NF = " << mesh->n_faces() << "\n";
-	SurfaceMesh::Vector3VertexProperty points = mesh->vertex_property<Eigen::Vector3d>("v:point");
-	foreach( SurfaceMesh::Vertex v, mesh->vertices() )
+    opengp::SurfaceMesh::Vector3VertexProperty points = mesh->vertex_property<Eigen::Vector3d>("v:point");
+    for( auto v : mesh->vertices() )
 		out << "v " << points[v][0] << " " << points[v][1] << " " << points[v][2] << "\n";
-	foreach( SurfaceMesh::Face f, mesh->faces() ){
+    for( auto f : mesh->faces() ){
 		out << "f ";
-		Surface_mesh::Vertex_around_face_circulator fvit=mesh->vertices(f), fvend=fvit;
-		do{	out << (((Surface_mesh::Vertex)fvit).idx()+1) << " ";} while (++fvit != fvend);
+        auto fvit=mesh->vertices(f), fvend=fvit;
+        do{	out << (fvit.operator *().idx()+1) << " ";} while (++fvit != fvend);
 		out << "\n";
 	}
 	file.close();
@@ -435,22 +434,22 @@ static void combineMeshes( QStringList filenames, QString outputFilename )
 	{
 		QFileInfo fileInfo(filename);
 
-		SurfaceMesh::SurfaceMeshModel * m = new SurfaceMesh::SurfaceMeshModel;
+        auto m = new opengp::SurfaceMesh::SurfaceMeshModel;
 		m->read( qPrintable(filename) );
-		SurfaceMesh::Vector3VertexProperty points = m->vertex_property<Eigen::Vector3d>("v:point");
+        auto points = m->vertex_property<Eigen::Vector3d>("v:point");
 
 		out << "# Start of mesh " << fileInfo.baseName() << "\n";
 
 		// Vertices
-		foreach( SurfaceMesh::Vertex v, m->vertices() )
+        for( auto v : m->vertices() )
 			out << "v " << points[v][0] << " " << points[v][1] << " " << points[v][2] << "\n";
 
 		// Triangles
 		out << "g " << fileInfo.baseName() << "\n";
-		foreach( SurfaceMesh::Face f, m->faces() ){
+        for( auto f : m->faces() ){
 			out << "f ";
-			Surface_mesh::Vertex_around_face_circulator fvit = m->vertices(f), fvend = fvit;
-			do{	out << (((Surface_mesh::Vertex)fvit).idx() + 1 + v_offset) << " ";} while (++fvit != fvend);
+            auto fvit = m->vertices(f), fvend = fvit;
+            do{	out << (fvit.operator *().idx() + 1 + v_offset) << " ";} while (++fvit != fvend);
 			out << "\n";
 		}
 

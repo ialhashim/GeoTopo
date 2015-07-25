@@ -1,17 +1,14 @@
 #pragma once
 #include <float.h>
-#include <QElapsedTimer>
 #include <set>
+#include <map>
+#include <iostream>
 
-#include "SurfaceMeshModel.h"
-using namespace SurfaceMesh;
-using namespace Eigen;
+#include <Eigen/Geometry>
 
 #include "weld.h"
 
-typedef Scalar Real;
-
-#define MAX_REAL std::numeric_limits<SurfaceMesh::Scalar>::max()
+#define MAX_REAL std::numeric_limits<Real>::max()
 #define REAL_ZERO_TOLERANCE 1e-6
 
 #ifdef WIN32
@@ -21,38 +18,36 @@ namespace std{  static inline bool isfinite(double x){ return _finite(x); } }
 #include <cmath>
 #endif
 
-typedef std::vector< Vector3d > Array1D_Vector3;
-typedef std::vector< Array1D_Vector3 > Array2D_Vector3;
-typedef std::vector< Scalar > Array1D_Real;
-typedef std::vector< Array1D_Real > Array2D_Real;
+namespace NURBS{
 
-typedef std::vector< Vector4d, Eigen::aligned_allocator<Vector4d> > Array1D_Vector4d;
-typedef std::vector< Array1D_Vector4d > Array2D_Vector4d;
+typedef double Real;
+typedef Eigen::Vector3d Vector3;
+typedef Eigen::Vector4d Vector4;
 
 #define Vector3_ZERO Vector3(0,0,0)
 
-#define qRanged(min, v, max) ( qMax(min, qMin(v, max)) )
+#define qRanged(_min, v, _max) ( (std::max(_min, (std::min(v, _max)))) )
 
 // For visualization
-struct SurfaceQuad{	Vector3 p[4]; Normal n[4]; };
+struct SurfaceQuad{	Vector3 p[4]; Vector3 n[4]; };
 
 inline double ClosestPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, Vector3 & closest)
 {
     // Check if P in vertex region outside A
-    Vector3d ab = b - a;
-    Vector3d ac = c - a;
-    Vector3d ap = p - a;
-    double d1 = dot(ab, ap);
-    double d2 = dot(ac, ap);
+    Vector3 ab = b - a;
+    Vector3 ac = c - a;
+    Vector3 ap = p - a;
+    double d1 = ab.dot(ap);
+    double d2 = ac.dot(ap);
     if (d1 <= 0 && d2 <= 0)
     {
         closest = a;
         return (p-closest).squaredNorm(); // barycentric coordinates (1,0,0)
     }
     // Check if P in vertex region outside B
-    Vector3d bp = p - b;
-    double d3 = dot(ab, bp);
-    double d4 = dot(ac, bp);
+    Vector3 bp = p - b;
+    double d3 = ab.dot(bp);
+    double d4 = ac.dot(bp);
     if (d3 >= 0 && d4 <= d3)
     {
         closest = b;
@@ -66,9 +61,9 @@ inline double ClosestPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, V
         return (p - closest).squaredNorm(); // barycentric coordinates (1-v,v,0)
     }
     // Check if P in vertex region outside C
-    Vector3d cp = p - c;
-    double d5 = dot(ab, cp);
-    double d6 = dot(ac, cp);
+    Vector3 cp = p - c;
+    double d5 = ab.dot(cp);
+    double d6 = ac.dot(cp);
     if (d6 >= 0 && d5 <= d6)
     {
         closest = c;
@@ -96,17 +91,17 @@ inline double ClosestPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, V
     return (p - closest).squaredNorm(); // = u*a + v*b + w*c, u = va * denom = 1 - v - w
 }
 
-inline double ClosestPointSegment(Vector3 p, Vector3 a, Vector3 b, double &t, Point &d)
+inline double ClosestPointSegment(Vector3 p, Vector3 a, Vector3 b, double &t, Vector3 &d)
 {
     Vector3 ab = b - a;
     // Project c onto ab, but deferring divide by Dot(ab, ab)
-    t = dot(Vector3(p - a), ab);
+    t = Vector3(p - a).dot(ab);
     if (t <= 0.0) {
         // c projects outside the [a,b] interval, on the a side; clamp to a
         t = 0.0;
         d = a;
     } else {
-        double denom = dot(ab, ab); // Always nonnegative since denom = ||ab||
+        double denom = ab.dot(ab); // Always nonnegative since denom = ||ab||
         if (t >= denom) {
             // c projects outside the [a,b] interval, on the b side; clamp to b
             t = 1.0;
@@ -135,19 +130,21 @@ inline double Clamp(double n, double min, double max) {
 
 inline double ClosestPointSegments(Vector3 p1, Vector3 q1, Vector3 p2, Vector3 q2, double &s, double &t, Vector3 &c1, Vector3 &c2)
 {
+    #define dots(a,b) ((a).dot(b))
+
     Vector3 d1 = q1 - p1; // Direction vector of segment S1
     Vector3 d2 = q2 - p2; // Direction vector of segment S2
     Vector3 r = p1 - p2;
-    double a = dot(d1, d1); // Squared length of segment S1, always nonnegative
-    double e = dot(d2, d2); // Squared length of segment S2, always nonnegative
-    double f = dot(d2, r);
+    double a = dots(d1, d1); // Squared length of segment S1, always nonnegative
+    double e = dots(d2, d2); // Squared length of segment S2, always nonnegative
+    double f = dots(d2, r);
     // Check if either or both segments degenerate into points
     if (a <= SEGMENTS_EPSILON && e <= SEGMENTS_EPSILON) {
         // Both segments degenerate into points
         s = t = 0.0;
         c1 = p1;
         c2 = p2;
-        return dot(c1 - c2, c1 - c2);
+        return dots(c1 - c2, c1 - c2);
     }
     if (a <= SEGMENTS_EPSILON) {
         // First segment degenerates into a point
@@ -155,14 +152,14 @@ inline double ClosestPointSegments(Vector3 p1, Vector3 q1, Vector3 p2, Vector3 q
         t = f / e; // s = 0 => t = (b*s + f) / e = f / e
         t = Clamp(t, 0.0, 1.0);
     } else {
-        double c = dot(d1, r);
+        double c = dots(d1, r);
         if (e <= SEGMENTS_EPSILON) {
             // Second segment degenerates into a point
             t = 0.0;
             s = Clamp(-c / a, 0.0, 1.0); // t = 0 => s = (b*t - c) / a = -c / a
         } else {
             // The general non-degenerate case starts here
-            double b = dot(d1, d2);
+            double b = dots(d1, d2);
             double denom = a*e-b*b; // Always nonnegative
             // If segments not parallel, compute closest point on L1 to L2 and
             // clamp to segment S1. Else pick arbitrary s (here 0)
@@ -186,7 +183,7 @@ inline double ClosestPointSegments(Vector3 p1, Vector3 q1, Vector3 p2, Vector3 q
     }
     c1 = p1 + d1 * s;
     c2 = p2 + d2 * t;
-    return dot(c1 - c2, c1 - c2);
+    return dots(c1 - c2, c1 - c2);
 }
 
 inline double ClosestSegmentTriangle(Vector3 p, Vector3 q, Vector3 a, Vector3 b, Vector3 c, Vector3 &projSegment, Vector3 &projTriangle)
@@ -262,50 +259,50 @@ inline Vector3 TriTriIntersect(	Vector3 a, Vector3 b, Vector3 c,
     return (p + q) / 2.0;
 }
 
-inline static bool sphereTest(Vector3d & p1, Vector3d & p2, double r1, double r2)
+inline static bool sphereTest(Vector3 & p1, Vector3 & p2, double r1, double r2)
 {
     double minDist = r1 + r2;
-    Vector3d relPos = p1 - p2;
+    Vector3 relPos = p1 - p2;
     double dist = relPos.x() * relPos.x() + relPos.y() * relPos.y() + relPos.z() * relPos.z();
     return dist <= minDist * minDist;
 }
 
-inline static bool intersectRayTri(const Array1D_Vector3 & tri, const Vector3d & rayOrigin,
-    const Vector3d & rayDirection, Vector3d & intersectionPoint)
+inline static bool intersectRayTri(const std::vector<Vector3> & tri, const Vector3 & rayOrigin,
+    const Vector3 & rayDirection, Vector3 & intersectionPoint)
 {
     double u, v, t;
-    Vector3d edge1 = tri[1] - tri[0];
-    Vector3d edge2 = tri[2] - tri[0];
-    Vector3d pvec = cross(rayDirection, edge2);
-    double det = dot(edge1, pvec);
+    Vector3 edge1 = tri[1] - tri[0];
+    Vector3 edge2 = tri[2] - tri[0];
+    Vector3 pvec = rayDirection.cross(edge2);
+    double det = edge1.dot(pvec);
     if (det == 0) return false;
     double invDet = 1 / det;
-    Vector3d tvec = rayOrigin - tri[0];
-    u = dot(tvec, pvec) * invDet;
+    Vector3 tvec = rayOrigin - tri[0];
+    u = tvec.dot(pvec) * invDet;
     if (u < 0 || u > 1) return false;
-    Vector3d qvec = cross(tvec, edge1);
-    v = dot(rayDirection, qvec) * invDet;
+    Vector3 qvec = tvec.cross(edge1);
+    v = rayDirection.dot(qvec) * invDet;
     if (v < 0 || u + v > 1) return false;
-    t = dot(edge2, qvec) * invDet;
+    t = edge2.dot(qvec) * invDet;
     intersectionPoint = rayOrigin + (t * rayDirection);
     return true;
 }
 
-inline static bool TestSphereTriangle(Point sphereCenter, double sphereRadius, Point a, Point b, Point c, Point &p)
+inline static bool TestSphereTriangle(Vector3 sphereCenter, double sphereRadius, Vector3 a, Vector3 b, Vector3 c, Vector3 &p)
 {
 	// Find point P on triangle ABC closest to sphere center
 	ClosestPointTriangle(sphereCenter, a, b, c, p);
 
 	// Sphere and triangle intersect if the (squared) distance from sphere
 	// center to point p is less than the (squared) sphere radius
-	Vector3d v = p - sphereCenter;
-	return dot(v, v) <= sphereRadius * sphereRadius;
+    Vector3 v = p - sphereCenter;
+    return v.dot(v) <= sphereRadius * sphereRadius;
 }
 
 /// Utility functions
-inline static Array2D_Vector3 inverseVectors3(Array2D_Vector3 vectors)
+inline static std::vector< std::vector<Vector3> > inverseVectors3(std::vector< std::vector<Vector3> > vectors)
 {
-    Array2D_Vector3 result = vectors;
+    std::vector< std::vector<Vector3> > result = vectors;
 
     for(int i = 0; i < (int)result.size(); i++)
         for(int j = 0; j < (int)result.front().size(); j++)
@@ -314,9 +311,9 @@ inline static Array2D_Vector3 inverseVectors3(Array2D_Vector3 vectors)
     return result;
 }
 
-inline static Array1D_Vector3 inverseVectors3(Array1D_Vector3 vectors)
+inline static std::vector<Vector3> inverseVectors3(std::vector<Vector3> vectors)
 {
-    Array1D_Vector3 result = vectors;
+    std::vector<Vector3> result = vectors;
 
     for(int i = 0; i < (int)result.size(); i++)
             result[i] *= -1;
@@ -343,17 +340,26 @@ struct NURBSException : public std::exception
    const char* what() const throw() { return s.c_str(); }
 };
 
+}
+
+typedef std::vector< NURBS::Vector3 > Array1D_Vector3;
+typedef std::vector< Array1D_Vector3 > Array2D_Vector3;
+typedef std::vector< NURBS::Real > Array1D_Real;
+typedef std::vector< Array1D_Real > Array2D_Real;
+typedef std::vector< NURBS::Vector4, Eigen::aligned_allocator<NURBS::Vector4> > Array1D_Vector4;
+typedef std::vector< Array1D_Vector4 > Array2D_Vector4;
+
 /// Quick Assertion
-#ifndef NDEBUG
-#   define assertion(condition, message) \
-    do { \
-        if (! (condition)) { \
-            throw NURBSException("NURBS assertion failed"); \
-            std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
-                      << " line " << __LINE__ << ": " << message << std::endl; \
-            std::exit(EXIT_FAILURE); \
-        } \
-    } while (false)
-#else
+//#ifndef NDEBUG
+//#   define assertion(condition, message) \
+//    do { \
+//        if (! (condition)) { \
+//            throw NURBSException("NURBS assertion failed"); \
+//            std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
+//                      << " line " << __LINE__ << ": " << message << std::endl; \
+//            std::exit(EXIT_FAILURE); \
+//        } \
+//    } while (false)
+//#else
 #   define assertion(condition, message) do { } while (false)
-#endif
+//#endif

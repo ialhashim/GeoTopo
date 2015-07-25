@@ -124,22 +124,22 @@ struct GraphEmbed
         // Output: a plane
         center  = mean;
         normal  = Vector3(n[0], n[1], n[2]);
-        d       = -dot(normal, center);
+        d       = -normal.dot(center);
     }
 
     static Vector3 pointOnPlane(Vector3 q, Vector3 pn, Scalar pd)
     {
-        Scalar t = dot(pn, q) - pd;
+        Scalar t = pn.dot(q) - pd;
         return q - t * pn;
     }
 
     static Vector3 RotateFromTo(Vector3 from, Vector3 to, Vector3 & point, Vector3 pivot = Vector3(0,0,0))
     {
-		Vector3 axis = cross(from, to).normalized();
-		double theta = acos( qRanged(-1.0, dot(from.normalized(), to.normalized()), 1.0) );
+        Vector3 axis = from.cross(to).normalized();
+        double theta = acos( qRanged(-1.0, from.normalized().dot(to.normalized()), 1.0) );
 
 		point -= pivot;
-		point = (point * cos(theta) + cross(axis, point) * sin(theta) + axis * dot(axis, point) * (1 - cos(theta)));
+        point = (point * cos(theta) + axis.cross(point) * sin(theta) + axis * axis.dot(point) * (1 - cos(theta)));
 		point += pivot;
 
 		return point;

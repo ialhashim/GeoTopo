@@ -2,8 +2,8 @@ TEMPLATE = subdirs
 
 # Libraries
 SUBDIRS += src/NURBS
-SUBDIRS += src/GlSplatRendererLib
 SUBDIRS += src/Reconstruction
+SUBDIRS += src/external/SurfaceMesh
 SUBDIRS += src/StructureGraphLib
 SUBDIRS += src/GeoTopoLib
 

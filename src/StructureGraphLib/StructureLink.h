@@ -3,11 +3,15 @@
 #include "StructureGlobal.h"
 #include "NurbsDraw.h"
 
-typedef Array1D_Vector4d LinkCoords;
-typedef QPair< QString,Vector4d > NodeCoord;
+typedef Array1D_Vector4 LinkCoords;
+typedef QPair< QString,Eigen::Vector4d > NodeCoord;
 typedef QPair< QString,LinkCoords > NodeCoords;
 
+using namespace opengp::SurfaceMesh;
+
 namespace Structure{
+
+typedef Eigen::Vector4d Vector4;
 
 struct Node;
 
@@ -32,12 +36,12 @@ struct Link
 		property[propertyName].setValue( propertyValue );
 	}
 
-	void setCoord( QString nodeID, Array1D_Vector4d newCoord );
-	void setCoordOther( QString nodeID, Array1D_Vector4d newCoord );
+    void setCoord( QString nodeID, Array1D_Vector4 newCoord );
+    void setCoordOther( QString nodeID, Array1D_Vector4 newCoord );
 
-	Array1D_Vector4d getCoord(QString nodeID);
-	Array1D_Vector4d getCoordOther(QString nodeID);
-	Vector4d getMiddleCoord(QString nodeID);
+    Array1D_Vector4 getCoord(QString nodeID);
+    Array1D_Vector4 getCoordOther(QString nodeID);
+    Vector4 getMiddleCoord(QString nodeID);
 	void invertCoords( QString nodeID );
 	Node * getNode(QString nodeID);
 	Node * otherNode(QString nodeID);
@@ -45,8 +49,8 @@ struct Link
 	Node * getNodeHasProperty(QString propertyName, QVariant propertyValue);
 
 	// Modify
-	void replace(QString oldNodeID, Node *newNode, Array1D_Vector4d newCoord);
-    void replaceForced(QString oldNodeID, Node *newNode, Array1D_Vector4d newCoord);
+    void replace(QString oldNodeID, Node *newNode, Array1D_Vector4 newCoord);
+    void replaceForced(QString oldNodeID, Node *newNode, Array1D_Vector4 newCoord);
 
 	// Constructors
     Link(Node * node1, Node * node2, LinkCoords coord_n1, LinkCoords coord_n2, QString link_type, QString ID);
@@ -70,7 +74,7 @@ struct Link
 	static QVector<Link*> haveProperty( QVector<Link*> links, QString propertyName );
 	static QVector<Link*> haveProperty( QVector<Link*> links, QString propertyName, QVariant propertyValue );
 
-	Vector3d delta();
+    Vector3 delta();
 
 	// State
 	void pushState();

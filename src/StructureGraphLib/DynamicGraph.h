@@ -83,11 +83,11 @@ namespace DynamicGraphs
 		QMap<int, QSet<SimpleEdge> > adjacency;
 
 		// Special cases
-		QMap< int, QMap< int, Array1D_Vector4d > > specialCoords;
+		QMap< int, QMap< int, Array1D_Vector4 > > specialCoords;
 		QMap< int, int > movable;
 		QMap< int, std::pair<int, std::pair<int,double> > > growingCurves;
 		QMap< int, std::pair<int,Array2D_Vector3> > growingSheets;
-		Array1D_Vector4d firstSpecialCoord( int node_index );
+		Array1D_Vector4 firstSpecialCoord( int node_index );
 	};
 
 }

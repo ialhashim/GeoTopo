@@ -3,7 +3,7 @@
 #include "NURBSCurve.h"
 #include "NURBSRectangle.h"
 
-typedef std::pair<Vector3,Vector3> PairVector3;
+typedef std::pair<NURBS::Vector3,NURBS::Vector3> PairVector3;
 #define glVector3( v ) glVertex3d( v.x(), v.y(), v.z() )
 #define glNormal3( v ) glNormal3d( v.x(), v.y(), v.z() )
 #define glLine(v1,v2) glVector3(v1);glVector3(v2)

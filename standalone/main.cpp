@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
 	if (parser.isSet("e"))
 	{
 		QVariantMap options;
-		//options["k"].setValue(6);
-		//options["isQuietMode"].setValue(true);
+        //options["k"].setValue(6);
+        //options["isQuietMode"].setValue(true);
 		options["isOutputMatching"].setValue(true);
 		options["isSaveReport"].setValue(true);
 		options["isLogJobs"].setValue(true);
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
 		srand(time(nullptr));
 
-		for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 1; i++)
 		{
 			auto bp = QSharedPointer<BatchProcess>(new BatchProcess(sourceShape, targetShape, options));
 			bp->jobUID = (double(rand()) / RAND_MAX) * 10;

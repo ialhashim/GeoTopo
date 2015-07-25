@@ -19,6 +19,8 @@ static QVector<QColor> myrndcolors = rndColors2(100);
 QDialog * dialog = nullptr;
 BatchProcess * bp = nullptr;
 
+#include "glhelper.h"
+
 void BatchProcess::init()
 {
 	bp = this;
@@ -779,6 +781,25 @@ void RenderingWidget::paintGL()
 	cam.setViewDirection((cam.sceneCenter()-cameraPos).unit());
 	cam.loadProjectionMatrix();
 	cam.loadModelViewMatrix();
+#else
+    double rotationAngle = M_PI * 1.3;
+    double radius = 4.5;
+
+    Eigen::Vector3d center, eye;
+    Eigen::Vector3d dir( cos(rotationAngle), sin(rotationAngle), 0.25);
+    center = bbox.center();
+    eye = center + (dir.normalized() * radius);
+
+    auto projectionMatrix = perspective<double>(20, 1.0, 0.01, 1000);
+    auto cameraMatrix = lookAt< Eigen::Vector3d >(eye, center, Eigen::Vector3d(0,0,1));
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glLoadMatrixd(projectionMatrix.data());
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glLoadMatrixd(cameraMatrix.data());
 #endif
 
 	// Draw shape

@@ -96,7 +96,7 @@ namespace Structure{
 
 		// Input / Output
 		void saveToFile(QString fileName, bool isOutParts = true) const;
-		void loadFromFile(QString fileName);
+                bool loadFromFile(QString fileName);
 
 		void exportAsOBJ( QString filename );
 

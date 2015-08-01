@@ -71,8 +71,7 @@ Graph::Graph( QString fileName )
 {
 	init();
 
-	loadFromFile( fileName );
-	property["name"] = fileName;
+        loadFromFile( fileName );
 }
 
 void Graph::init()
@@ -1034,15 +1033,17 @@ void Graph::saveToFile( QString fileName, bool isOutParts /*= true*/ ) const
 	file.close();
 }
 
-void Graph::loadFromFile( QString fileName )
+bool Graph::loadFromFile( QString fileName )
 {
 	// Clear data
 	nodes.clear();
 	edges.clear();
 
 	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
 	QFileInfo fileInfo(file.fileName());
+
+        property["name"] = fileName;
 
 	QDomDocument mDocument;
 	mDocument.setContent(&file, false);    
@@ -1217,6 +1218,8 @@ void Graph::loadFromFile( QString fileName )
     }
 
 	file.close();
+
+        return true;
 }
 
 void Graph::exportAsOBJ( QString filename )

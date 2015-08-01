@@ -498,7 +498,7 @@ void Curve::deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid 
 	setControlPoints( ctrlPnts );
 }
 
-void Curve::deformTwoHandles( Vector4d& handleA, Vector3 newPosA, Vector4d& handleB, Vector3 newPosB )
+void Curve::deformTwoHandles(Vector4d handleA, Vector3 newPosA, Vector4d handleB, Vector3 newPosB )
 {
     Vector3 oldA = position(handleA);
     Vector3 oldB = position(handleB);

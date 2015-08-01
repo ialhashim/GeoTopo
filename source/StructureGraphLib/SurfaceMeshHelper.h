@@ -117,13 +117,13 @@ public:
 
             // average the values of neighbors
             for( auto v : mesh->vertices() ){
-                for( auto vj : mesh->onering_hedges(v) )
-                    newValues[ v.idx() ] += vprop[ mesh->to_vertex(vj) ];
+                for( auto vj : mesh->vertices(v) )
+                    newValues[ v.idx() ] += vprop[ vj ];
                 newValues[ v.idx() ] /= mesh->valence(v);
             }
 
             // copy results back to property
-            foreach(Vertex v, mesh->vertices())
+            for(auto v : mesh->vertices())
                 vprop[v] = newValues[v.idx()];
         }
 

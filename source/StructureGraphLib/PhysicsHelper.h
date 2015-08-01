@@ -26,7 +26,7 @@ public:
         return volume;
     }
 
-    SurfaceMesh::Vector3 centerOfMass( Eigen::Matrix3d & inertiaTensor = Eigen::Matrix3d(),
+    SurfaceMesh::Vector3 centerOfMass( Eigen::Matrix3d inertiaTensor = Eigen::Matrix3d(),
                                        Scalar density = 1.0, Scalar * meshMass = NULL )
     {
         Scalar T0;

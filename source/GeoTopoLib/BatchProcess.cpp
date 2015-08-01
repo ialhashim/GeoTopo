@@ -1,4 +1,5 @@
-﻿#include "BatchProcess.h"
+﻿#include "ShapeGraph.h"
+#include "BatchProcess.h"
 #include "myglobals.h"
 #include <QGuiApplication>
 #include <QApplication>
@@ -130,7 +131,7 @@ BatchProcess::BatchProcess(QString filename) : jobfilename(filename), isVisualiz
 
 		// List jobs
 		QListWidget * list = new QListWidget;
-		for (auto & j : jobsArray){
+        for (auto j : jobsArray){
 			auto job = j.toObject(); if (job.isEmpty()) continue;
 			QListWidgetItem* item = new QListWidgetItem(job["title"].toString(), list);
 			item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
@@ -175,7 +176,7 @@ void BatchProcess::run()
 
 	for (int idx = 0; idx < jobsArray.size(); idx++ )
 	{
-		auto & j = jobsArray[idx];
+        auto j = jobsArray[idx];
 
 		/// Input Shapes:
 		auto job = j.toObject(); if (job.isEmpty()) continue;

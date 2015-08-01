@@ -350,16 +350,5 @@ typedef std::vector< NURBS::Vector4, Eigen::aligned_allocator<NURBS::Vector4> > 
 typedef std::vector< Array1D_Vector4 > Array2D_Vector4;
 
 /// Quick Assertion
-//#ifndef NDEBUG
-//#   define assertion(condition, message) \
-//    do { \
-//        if (! (condition)) { \
-//            throw NURBSException("NURBS assertion failed"); \
-//            std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
-//                      << " line " << __LINE__ << ": " << message << std::endl; \
-//            std::exit(EXIT_FAILURE); \
-//        } \
-//    } while (false)
-//#else
-#   define assertion(condition, message) do { } while (false)
-//#endif
+#define assertion(condition, message) do { } while (false)
+

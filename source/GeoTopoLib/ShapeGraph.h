@@ -23,11 +23,11 @@ struct Relation{
 };
 
 struct Landmark : public Eigen::Vector3d{
-    Landmark(size_t id = -1, const Eigen::Vector3d vec = Eigen::Vector3d(0, 0, 0)) :
+    Landmark(unsigned int id = -1, const Eigen::Vector3d vec = Eigen::Vector3d(0, 0, 0)) :
         id(id), Eigen::Vector3d(vec), constraint_id(-1){ u = v = -1; partid = "none"; }
     double u, v;
     QString partid;
-    size_t id;
+    unsigned int id;
     int constraint_id;
     void serialize(QDataStream& os) const {
         os << id;
@@ -55,6 +55,8 @@ struct ShapeGraph : public Graph{
         this->animation_index = other.animation_index;
         this->animation_debug = other.animation_debug;
     }
+    ~ShapeGraph(){}
+
     QVector<Landmarks> landmarks;
 
     // Part relations and grouping
@@ -526,12 +528,12 @@ struct NormalAnalysis{
     double standardDeviation(){ return std::max(stdev(x), std::max(stdev(y), stdev(z))); }
 };
 
-template<class Vector3>
+template<typename Vector3>
 std::pair<Vector3, Vector3> best_plane_from_points(const std::vector<Vector3> & c)
 {
     // copy coordinates to  matrix in Eigen format
     size_t num_atoms = c.size();
-    Eigen::Matrix< Vector3::Scalar, Eigen::Dynamic, Eigen::Dynamic > coord(3, num_atoms);
+    Eigen::Matrix< typename Vector3::Scalar, Eigen::Dynamic, Eigen::Dynamic > coord(3, num_atoms);
     for (size_t i = 0; i < num_atoms; ++i) coord.col(i) = c[i];
 
     // calculate centroid
@@ -543,16 +545,16 @@ std::pair<Vector3, Vector3> best_plane_from_points(const std::vector<Vector3> & 
     // we only need the left-singular matrix here
     //  http://math.stackexchange.com/questions/99299/best-fitting-plane-given-a-set-of-points
     auto svd = coord.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
-    Vector3 plane_normal = svd.matrixU().rightCols<1>();
+    Vector3 plane_normal = svd.matrixU().template rightCols<1>();
     return std::make_pair(centroid, plane_normal);
 }
 
-template<class Vector3>
+template<typename Vector3>
 std::pair < Vector3, Vector3 > best_line_from_points(const std::vector<Vector3> & c)
 {
     // copy coordinates to  matrix in Eigen format
     size_t num_atoms = c.size();
-    Eigen::Matrix< Vector3::Scalar, Eigen::Dynamic, Eigen::Dynamic > centers(num_atoms, 3);
+    Eigen::Matrix< typename Vector3::Scalar, Eigen::Dynamic, Eigen::Dynamic > centers(num_atoms, 3);
     for (size_t i = 0; i < num_atoms; ++i) centers.row(i) = c[i];
 
     Vector3 origin = centers.colwise().mean();

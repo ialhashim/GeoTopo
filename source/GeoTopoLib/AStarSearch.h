@@ -56,7 +56,10 @@ namespace AStar
 			auto suggestions = Energy::GuidedDeformation::suggestChildren(*this, k_top);
 
 			for (auto suggestion : suggestions)
-				astarsearch->AddSuccessor(PathSearchNode(suggestion));
+            {
+                auto psn = PathSearchNode(suggestion);
+                astarsearch->AddSuccessor(psn);
+            }
 
 			return suggestions.size();
 		}

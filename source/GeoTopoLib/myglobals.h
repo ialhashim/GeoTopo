@@ -205,18 +205,18 @@ std::vector< std::vector<T> > sets( const std::vector<T> & input, int min_size =
 template<typename Vvi>
 void cart_product(Vvi& out, const Vvi& in, int maxCount = -1)
 {
-	typedef Vvi::value_type Vi;
+        typedef typename Vvi::value_type Vi;
 	struct Digits {
-		Vi::const_iterator begin;
-		Vi::const_iterator end;
-		Vi::const_iterator me;
+                typename Vi::const_iterator begin;
+                typename Vi::const_iterator end;
+                typename Vi::const_iterator me;
 	};
 	typedef std::vector<Digits> Vd;
 
 	Vd vd;
 
 	// Start all of the iterators at the beginning.
-	for(Vvi::const_iterator it = in.begin();
+        for(typename Vvi::const_iterator it = in.begin();
 		it != in.end();
 		++it) {
 			Digits d = {(*it).begin(), (*it).end(), (*it).begin()};
@@ -228,7 +228,7 @@ void cart_product(Vvi& out, const Vvi& in, int maxCount = -1)
 		// Construct your first product vector by pulling 
 		// out the element of each vector via the iterator.
 		Vi result;
-		for(Vd::const_iterator it = vd.begin();
+                for(typename Vd::const_iterator it = vd.begin();
 			it != vd.end();
 			it++) {
 				result.push_back(*(it->me));
@@ -244,7 +244,7 @@ void cart_product(Vvi& out, const Vvi& in, int maxCount = -1)
 		// increment the next-to-last one. You can get the "next-to-last"
 		// iterator by pulling it out of the neighboring element in your
 		// vector of iterators.
-		for(Vd::iterator it = vd.begin(); ; ) {
+                for(typename Vd::iterator it = vd.begin(); ; ) {
 			// okay, I started at the left instead. sue me
 			++(it->me);
 			if(it->me == it->end) {

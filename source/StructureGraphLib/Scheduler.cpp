@@ -1111,7 +1111,7 @@ void Scheduler::setSchedule( ScheduleType fromSchedule )
 	Task * t = NULL;
 	foreach(QString nodeID, fromSchedule.keys())
 	{
-		if(t = getTaskFromNodeID(nodeID))
+        if(t == getTaskFromNodeID(nodeID))
 		{
 			t->setStart(fromSchedule[nodeID].first);
 			t->setLength(fromSchedule[nodeID].second);

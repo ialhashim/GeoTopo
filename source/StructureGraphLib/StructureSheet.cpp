@@ -219,7 +219,7 @@ double Sheet::area()
 
 double Sheet::length()
 {
-    auto polylineLength = [&]( std::vector<Vector3> & polyline ){
+    auto polylineLength = [&]( std::vector<Vector3> polyline ){
         double sum = 0;
         for(int i = 1; i < (int)polyline.size(); i++){
             sum += (polyline[i] - polyline[i-1]).norm();
@@ -608,7 +608,7 @@ void Sheet::deformTo( const Vector4 & handle, const Vector3 & to, bool isRigid )
 	}
 }
 
-void Sheet::deformTwoHandles( Vector4& handleA, Vector3 newPosA, Vector4& handleB, Vector3 newPosB )
+void Sheet::deformTwoHandles(Vector4 handleA, Vector3 newPosA, Vector4 handleB, Vector3 newPosB )
 {
 	Vector3d oldA = position(handleA);
 	Vector3d oldB = position(handleB);

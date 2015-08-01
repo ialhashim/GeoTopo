@@ -38,7 +38,7 @@ struct Sheet : public Node
 	void refineControlPoints(int nU, int nV = 0);
 	void equalizeControlPoints( Structure::Node * other );
     void deformTo(const Vector4 &handle, const Vector3 & to, bool isRigid );
-    void deformTwoHandles( Vector4& handleA, Vector3 newPosA, Vector4& handleB, Vector3 newPosB );
+    void deformTwoHandles( Vector4 handleA, Vector3 newPosA, Vector4 handleB, Vector3 newPosB );
     NURBS::NURBSCurved convertToNURBSCurve(Vector3 p, Vector3 dir);
 
     Array1D_Vector3 discretizedAsCurve(Scalar resolution);

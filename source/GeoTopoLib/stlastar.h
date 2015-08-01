@@ -116,11 +116,11 @@ public: // methods
 
 	// constructor just initializes private data
 	AStarSearch() :
-		m_State( SEARCH_STATE_NOT_INITIALISED ),
+                m_State( SEARCH_STATE_NOT_INITIALISED )
 #if USE_FSA_MEMORY
-		m_FixedSizeAllocator( 1000 ),
+                ,m_FixedSizeAllocator( 1000 )
 #endif
-		m_AllocateNodeCount(0)
+                //,m_AllocateNodeCount(0)
 	{
 	}
 
@@ -365,7 +365,7 @@ private:
 		{
 			return NULL;
 		}
-		m_AllocateNodeCount ++;
+                //m_AllocateNodeCount ++;
 		Node *p = new (address) Node;
 		return p;
 #endif
@@ -373,7 +373,7 @@ private:
 
 	void FreeNode(Node *node)
 	{
-		m_AllocateNodeCount--;
+                //m_AllocateNodeCount--;
 
 #if !USE_FSA_MEMORY
 		delete node;

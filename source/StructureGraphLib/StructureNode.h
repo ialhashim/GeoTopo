@@ -41,7 +41,7 @@ struct Node
 	virtual void refineControlPoints(int nU, int nV = 0) = 0;
 	virtual void equalizeControlPoints( Structure::Node * other ) = 0;
     virtual void deformTo( const Vector4 & handle, const Vector3 & to, bool isRigid ) = 0;
-    virtual void deformTwoHandles( Vector4 & handleA, Vector3 newPosA, Vector4 & handleB, Vector3 newPosB ) = 0;
+    virtual void deformTwoHandles( Vector4 handleA, Vector3 newPosA, Vector4 handleB, Vector3 newPosB ) = 0;
 
 	// Coordinates
     virtual void get( const Vector4& coordinates, Vector3 & pos, std::vector<Vector3> & frame ) = 0;

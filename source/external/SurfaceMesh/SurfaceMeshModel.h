@@ -76,8 +76,6 @@ namespace SurfaceMesh{
     typedef Surface_mesh::Halfedge_property<Scalar> ScalarHalfedgeProperty; ///< A scalar associated to an halfedge.
 /// @}    
 
-    class SurfaceMeshForEachOneRingEdgesHelper;
-
 /**
  * @brief A starlab Model for the Surface_mesh datatype
  * @defgroup surfacemesh SurfaceMeshModel
@@ -97,7 +95,6 @@ public:
     SurfaceMeshModel * clone(std::vector<Surface_mesh::Vertex> subset);
     SurfaceMeshModel * clone(std::vector<Surface_mesh::Face> subset);
 /// @}
-    SurfaceMeshForEachOneRingEdgesHelper onering_hedges(Vertex v);
 
 /// @}
 

@@ -40,7 +40,7 @@ struct Curve : public Node
 	void refineControlPoints(int nU, int nV = 0);
 	void equalizeControlPoints( Structure::Node * other );
 	void deformTo( const Vector4d & handle, const Vector3 & to, bool isRigid );
-	void deformTwoHandles( Vector4d& handleA, Vector3 newPosA, Vector4d& handleB, Vector3 newPosB );
+    void deformTwoHandles( Vector4d handleA, Vector3 newPosA, Vector4d handleB, Vector3 newPosB );
 
     Array1D_Vector3 discretizedAsCurve(Scalar resolution);
 	Array2D_Vector3 discretized(Scalar resolution);

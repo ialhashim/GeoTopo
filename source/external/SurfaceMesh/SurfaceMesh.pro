@@ -9,17 +9,13 @@ CONFIG += staticlib
 QT += opengl
 
 # Build flag
-CONFIG(debug, debug|release) {
-    CFG = debug
-} else {
-    CFG = release
-}
-
-INCLUDEPATH *= surface_mesh
+CONFIG(debug, debug|release) {CFG = debug} else {CFG = release}
 
 # Library name and destination
 TARGET = SurfaceMesh
-DESTDIR = $$PWD/$$CFG/lib
+DESTDIR = $$PWD/lib/$$CFG
+
+INCLUDEPATH *= surface_mesh
 
 SOURCES += SurfaceMeshModel.cpp
 HEADERS += SurfaceMeshModel.h

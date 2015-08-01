@@ -6,18 +6,11 @@ CONFIG += staticlib
 QT += opengl xml svg concurrent widgets
 
 # Build flag
-CONFIG(debug, debug|release) {
-    CFG = debug
-} else {
-    CFG = release
-
-    DEFINES += QT_NO_DEBUG
-    DEFINES += QT_NO_DEBUG_OUTPUT
-}
+CONFIG(debug, debug|release) {CFG = debug} else {CFG = release}
 
 # Library name and destination
 TARGET = StructureGraphLib
-DESTDIR = $$PWD/$$CFG/lib
+DESTDIR = $$PWD/lib/$$CFG
 
 # NURBS library
 LIBS += -L$$PWD/../NURBS/$$CFG/lib -lNURBS

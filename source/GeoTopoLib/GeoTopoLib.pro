@@ -10,7 +10,7 @@ CONFIG(debug, debug|release) {CFG = debug} else {CFG = release}
 
 # Library name and destination
 TARGET = GeoTopoLib
-DESTDIR = $$PWD/$$CFG/lib
+DESTDIR = $$PWD/lib/$$CFG
 
 SOURCES += \ 
     BatchProcess.cpp \

@@ -5,15 +5,11 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 # Build flag
-CONFIG(debug, debug|release) {
-    CFG = debug
-} else {
-    CFG = release
-}
+CONFIG(debug, debug|release) {CFG = debug} else {CFG = release}
 
 # Library name and destination
 TARGET = Reconstruction
-DESTDIR = $$PWD/$$CFG/lib
+DESTDIR = $$PWD/lib/$$CFG
 
 HEADERS +=  poissonrecon.h \
             Src/Vector.h \

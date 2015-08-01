@@ -1,11 +1,11 @@
 TEMPLATE = subdirs
 
 # Libraries
-SUBDIRS += src/NURBS
-SUBDIRS += src/Reconstruction
-SUBDIRS += src/external/SurfaceMesh
-SUBDIRS += src/StructureGraphLib
-SUBDIRS += src/GeoTopoLib
+SUBDIRS += source/NURBS
+SUBDIRS += source/Reconstruction
+SUBDIRS += source/external/SurfaceMesh
+SUBDIRS += source/StructureGraphLib
+SUBDIRS += source/GeoTopoLib
 
 # Standalone tool
 SUBDIRS += standalone

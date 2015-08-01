@@ -9,15 +9,11 @@ CONFIG += staticlib
 QT += opengl
 
 # Build flag
-CONFIG(debug, debug|release) {
-    CFG = debug
-} else {
-    CFG = release
-}
+CONFIG(debug, debug|release) {CFG = debug} else {CFG = release}
 
 # Library name and destination
 TARGET = NURBS
-DESTDIR = $$PWD/$$CFG/lib
+DESTDIR = $$PWD/lib/$$CFG
 
 SOURCES += \
     ParametricSurface.cpp \

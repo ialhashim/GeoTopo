@@ -34,13 +34,13 @@ HEADERS += \
 
 ## External libraries:
 # NURBS library
-LIBS += -L$$PWD/../NURBS/$$CFG/lib -lNURBS
+LIBS += -L$$PWD/../NURBS/lib/$$CFG -lNURBS
 INCLUDEPATH += ../NURBS
 
 # Surface mesh library
-LIBS += -L$$PWD/../external/SurfaceMesh/$$CFG/lib -lSurfaceMesh
+LIBS += -L$$PWD/../external/SurfaceMesh/lib/$$CFG -lSurfaceMesh
 INCLUDEPATH += ../external/SurfaceMesh ../external/SurfaceMesh/surface_mesh
 
 # Structure Graph Library
-LIBS += -L$$PWD/../StructureGraphLib/$$CFG/lib -lStructureGraphLib
+LIBS += -L$$PWD/../StructureGraphLib/lib/$$CFG -lStructureGraphLib
 INCLUDEPATH += ../StructureGraphLib

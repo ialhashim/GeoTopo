@@ -13,15 +13,15 @@ TARGET = StructureGraphLib
 DESTDIR = $$PWD/lib/$$CFG
 
 # NURBS library
-LIBS += -L$$PWD/../NURBS/$$CFG/lib -lNURBS
+LIBS += -L$$PWD/../NURBS/lib/$$CFG -lNURBS
 INCLUDEPATH += ../NURBS
 
 # Surface Reconstruction library
-LIBS += -L$$PWD/../Reconstruction/$$CFG/lib -lReconstruction
+LIBS += -L$$PWD/../Reconstruction/lib/$$CFG -lReconstruction
 INCLUDEPATH += ../Reconstruction
 
 # Surface mesh library
-LIBS += -L$$PWD/../external/SurfaceMesh/$$CFG/lib -lSurfaceMesh
+LIBS += -L$$PWD/../external/SurfaceMesh/lib/$$CFG -lSurfaceMesh
 INCLUDEPATH += ../external/SurfaceMesh ../external/SurfaceMesh/surface_mesh
 
 HEADERS += StructureNode.h \

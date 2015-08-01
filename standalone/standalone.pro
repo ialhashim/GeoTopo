@@ -26,17 +26,17 @@ CONFIG(debug, debug|release) {
 }
 
 # NURBS library
-LIBS += -L$$PWD/../source/NURBS/$$CFG/lib -lNURBS
+LIBS += -L$$PWD/../source/NURBS/lib/$$CFG -lNURBS
 INCLUDEPATH += ../source/NURBS
 
 # Surface mesh library
-LIBS += -L$$PWD/../source/external/SurfaceMesh/$$CFG/lib -lSurfaceMesh
+LIBS += -L$$PWD/../source/external/SurfaceMesh/lib/$$CFG -lSurfaceMesh
 INCLUDEPATH += ../source/external/SurfaceMesh ../source/external/SurfaceMesh/surface_mesh
 
 # StructureGraph library
-LIBS += -L$$PWD/../source/StructureGraphLib/$$CFG/lib -lStructureGraphLib
+LIBS += -L$$PWD/../source/StructureGraphLib/lib/$$CFG -lStructureGraphLib
 INCLUDEPATH += ../source/StructureGraphLib
 
 # GeoTopo library
-LIBS += -L$$PWD/../source/GeoTopoLib/$$CFG/lib -lGeoTopoLib
+LIBS += -L$$PWD/../source/GeoTopoLib/lib/$$CFG -lGeoTopoLib
 INCLUDEPATH += ../source/GeoTopoLib

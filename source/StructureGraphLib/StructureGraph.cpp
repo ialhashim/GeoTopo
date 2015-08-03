@@ -1039,6 +1039,8 @@ bool Graph::loadFromFile( QString fileName )
 	nodes.clear();
 	edges.clear();
 
+    if(!fileName.trimmed().size()) return false;
+
 	QFile file(fileName);
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
 	QFileInfo fileInfo(file.fileName());

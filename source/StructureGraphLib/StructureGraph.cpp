@@ -1039,13 +1039,13 @@ bool Graph::loadFromFile( QString fileName )
 	nodes.clear();
 	edges.clear();
 
-    if(!fileName.trimmed().size()) return false;
+        if(!fileName.trimmed().size()) return false;
+
+        property["name"] = fileName;
 
 	QFile file(fileName);
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
 	QFileInfo fileInfo(file.fileName());
-
-        property["name"] = fileName;
 
 	QDomDocument mDocument;
 	mDocument.setContent(&file, false);    

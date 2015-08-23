@@ -505,7 +505,7 @@ Array1D_Vector3 GraphDistance::positionalPath( Structure::Graph * graph, QVector
 
 	// To ensure unique points
 	std::vector<size_t> xrefs;
-    weld(pnts, xrefs, std::hash_Vector3d(), std::equal_to<Eigen::Vector3d>());
+    weld(pnts, xrefs, std::hash_Vector3<Vector3>(), std::equal_to<Eigen::Vector3d>());
 
 	return smoothPolyline(pnts, smoothingIters);
 }

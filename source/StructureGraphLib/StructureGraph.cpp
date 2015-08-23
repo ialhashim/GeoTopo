@@ -1958,6 +1958,17 @@ QVector< QVector<QString> > Graph::groupsOf( QString nodeID )
     return result;
 }
 
+bool Graph::shareGroup(QString nodeA, QString nodeB)
+{
+    foreach(QVector<QString> group, groups)
+    {
+        if(group.contains(nodeA) && group.contains(nodeB))
+            return true;
+    }
+
+    return false;
+}
+
 QVector< QVector<QString> > Graph::nodesAsGroups()
 {
     QVector< QVector<QString> > asgroups;

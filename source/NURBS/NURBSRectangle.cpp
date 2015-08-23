@@ -789,7 +789,7 @@ Array1D_Vector3 NURBSRectangle<Real>::intersect( NURBSRectangle<Real> & other, d
     }
 
     std::vector<size_t> corner_xrefs;
-    weld(samples, corner_xrefs, std::hash_Vector3d(), std::equal_to<Vector3>());
+    weld(samples, corner_xrefs, std::hash_Vector3<Vector3>(), std::equal_to<Vector3>());
 
     Vector3 p(0,0,0);
     double threshold = resolution * 0.5;
@@ -812,7 +812,7 @@ Array1D_Vector3 NURBSRectangle<Real>::intersect( NURBSRectangle<Real> & other, d
         samples.push_back(p);
     }
 
-    weld(samples, corner_xrefs, std::hash_Vector3d(), std::equal_to<Vector3>());
+    weld(samples, corner_xrefs, std::hash_Vector3<Vector3>(), std::equal_to<Vector3>());
 
     // Cluster and average
     std::vector<bool> visited(samples.size(), false);
@@ -842,7 +842,7 @@ Array1D_Vector3 NURBSRectangle<Real>::intersect( NURBSRectangle<Real> & other, d
         samples.push_back(avg);
     }
 
-    weld(samples, corner_xrefs, std::hash_Vector3d(), std::equal_to<Vector3>());
+    weld(samples, corner_xrefs, std::hash_Vector3<Vector3>(), std::equal_to<Vector3>());
 
     if(samples.size() == 0)
         return samples;

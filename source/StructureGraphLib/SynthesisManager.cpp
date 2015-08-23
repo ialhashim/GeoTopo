@@ -356,7 +356,7 @@ void SynthesisManager::renderGraph( Structure::Graph graph, QString filename, bo
         if( false )
         {
             std::vector<size_t> xrefs;
-            weld(clean_points, xrefs, std::hash_Vector3f(), std::equal_to<Eigen::Vector3f>());
+            weld(clean_points, xrefs, std::hash_Vector3<Eigen::Vector3f>(), std::equal_to<Eigen::Vector3f>());
 
             std::set<int> uniqueIds;
             for(int i = 0; i < (int)points.size(); i++)	uniqueIds.insert(xrefs[i]);

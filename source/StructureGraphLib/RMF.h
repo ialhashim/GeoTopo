@@ -6,9 +6,6 @@ typedef unsigned int uint;
 
 #define ZERO_NORM 1e-7
 
-#include "SurfaceMeshModel.h"
-using namespace SurfaceMesh;
-
 class RMF{
 public:
     RMF(){}

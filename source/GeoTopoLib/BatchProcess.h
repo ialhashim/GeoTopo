@@ -1,7 +1,5 @@
 #pragma once
 
-#include "EnergyGuidedDeformation.h"
-
 #include <QThread>
 #include <QProgressDialog>
 #include <QJsonDocument>
@@ -11,6 +9,10 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+
+namespace Structure{ struct ShapeGraph; }
+namespace opengp{ namespace SurfaceMesh{class SurfaceMeshModel;} }
+
 class RenderingWidget : public QOpenGLWidget, protected QOpenGLFunctions{
 	Q_OBJECT
 public:
@@ -21,7 +23,7 @@ public:
 protected:
 	void initializeGL();
 	void paintGL();
-	SurfaceMesh::SurfaceMeshModel * model;
+    opengp::SurfaceMesh::SurfaceMeshModel * model;
 };
 
 class BatchProcess : public QThread
@@ -36,6 +38,8 @@ public:
 	QSharedPointer<RenderingWidget> renderer;
 	int jobUID;
 
+    typedef QVector< QPair<QStringList, QStringList> > EnergyAssignments;
+
 	void init();
 	void run();
 
@@ -43,7 +47,7 @@ public:
 	void exportJobFile(QString filename);
 
 	double executeJob(QString sourceFile, QString targetFile, QJsonObject & job, 
-		Energy::Assignments & assignments, QVariantMap & jobReport, int jobIdx);
+        EnergyAssignments & assignments, QVariantMap & jobReport, int jobIdx);
 
 	// Job properties:
 	QString jobfilename;
@@ -63,6 +67,10 @@ public:
 	int dpTopK, dpTopK_2;
 
     QVector<QVariantMap> jobReports;
+
+    // Shapes loaded from memory
+    QSharedPointer<Structure::ShapeGraph> cachedShapeA, cachedShapeB;
+
 public slots:
 	void setJobsArray(QJsonArray);
 

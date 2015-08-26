@@ -1,3 +1,6 @@
+#include <iostream>
+#include <time.h>
+
 #include "mainwindow.h"
 #include <QApplication>
 #include <QFileDialog>
@@ -6,6 +9,7 @@
 #include <QElapsedTimer>
 #include <QDateTime>
 #include <QTimer>
+#include <QTextStream>
 #include "BatchProcess.h"
 
 enum CommandLineParseResult{
@@ -15,6 +19,7 @@ enum CommandLineParseResult{
     CommandLineHelpRequested
 };
 
+typedef QVariantMap PropertyMap;
 typedef QMap<QString, PropertyMap> DatasetMap;
 DatasetMap shapesInDataset(QString datasetPath)
 {

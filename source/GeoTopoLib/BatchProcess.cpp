@@ -1,4 +1,5 @@
-﻿#include "ShapeGraph.h"
+﻿#include "EnergyGuidedDeformation.h"
+#include "ShapeGraph.h"
 #include "BatchProcess.h"
 #include "myglobals.h"
 #include <QGuiApplication>
@@ -55,19 +56,19 @@ void BatchProcess::init()
 		renderer->move(0, 0);
 	}
 
-	// Progress
-	pd = QSharedPointer<QProgressDialog>(new QProgressDialog("Searching..", "Cancel", 0, 0));
-	pd->setValue(0);
-	pd->connect(this, SIGNAL(jobFinished(int)), SLOT(setValue(int)));
-	pd->connect(this, SIGNAL(allJobsFinished()), SLOT(deleteLater()));
-	pd->connect(this, SIGNAL(setLabelText(QString)), SLOT(setLabelText(QString)));
-
 	// Show progress
 	if (isVisualize)
 	{
-		renderer->show();
-		pd->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
-		pd->show();
+            // Progress
+            pd = QSharedPointer<QProgressDialog>(new QProgressDialog("Searching..", "Cancel", 0, 0));
+            pd->setValue(0);
+            pd->connect(this, SIGNAL(jobFinished(int)), SLOT(setValue(int)));
+            pd->connect(this, SIGNAL(allJobsFinished()), SLOT(deleteLater()));
+            pd->connect(this, SIGNAL(setLabelText(QString)), SLOT(setLabelText(QString)));
+
+            renderer->show();
+            pd->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
+            pd->show();
 	}
 }
 
@@ -172,7 +173,8 @@ void BatchProcess::run()
 	int allTime = 0;
 
 	// Progress
-	pd->setMaximum(jobsArray.size());
+        if(!pd.isNull())
+            pd->setMaximum(jobsArray.size());
 
 	for (int idx = 0; idx < jobsArray.size(); idx++ )
 	{
@@ -261,8 +263,8 @@ void BatchProcess::run()
 	emit(reportMessage(QString("Batch process time (%1 s)").arg(double(allTimer.elapsed()) / 1000), 0));
 }
 
-double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObject & job, 
-	Energy::Assignments & assignments, QVariantMap & jobReport, int jobIdx)
+double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObject & job,
+    BatchProcess::EnergyAssignments &assignments, QVariantMap & jobReport, int jobIdx)
 {
 	jobUID++;
 
@@ -274,8 +276,23 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 	Energy::GuidedDeformation egd;
 
 	// Load shapes
-    auto shapeA = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(sourceFile));
-    auto shapeB = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(targetFile));
+    QSharedPointer<Structure::ShapeGraph> shapeA, shapeB;
+
+    // Allow loading shapes from memeory
+    if(sourceFile.startsWith("CACHED_") && targetFile.startsWith("CACHED_")
+            && !cachedShapeA.isNull() && !cachedShapeB.isNull())
+    {
+        sourceFile = sourceFile.replace("CACHED_","");
+        targetFile = targetFile.replace("CACHED_","");
+
+        shapeA = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(*cachedShapeA.data()));
+        shapeB = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(*cachedShapeB.data()));
+    }
+    else
+    {
+        shapeA = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(sourceFile));
+        shapeB = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(targetFile));
+    }
 
 	if (shapeA->nodes.isEmpty() || shapeB->nodes.isEmpty()) return 1.0;
 
@@ -575,15 +592,12 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 			img = stitchImages(img, cur_solution_img, true, 0);
 		}
 
-		if (isOutputMatching)
+        // Output machingings
 		{
 			// Only output best match:
 			if (r == 0)
-			{
-				QFile file(match_file);
-				file.open(QFile::WriteOnly | QFile::Text);
-				QTextStream out(&file);
-				QSet< QString > matchings;
+            {
+                QSet< QString > matchings;
 
 				for (auto key : selected_path->mapping.keys())
 				{
@@ -599,8 +613,6 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 					QString sid = realID(sn);
 					QString tid = realID(tn);
 
-					QPair<QString, QString> matching;
-
 					// Check for one-to-many case
 					bool isSourceOne = !selected_path->shapeA->hasRelation(sid) || selected_path->shapeA->relationOf(sid).parts.size() == 1;
 					bool isTargetMany = selected_path->shapeB->hasRelation(tid) && selected_path->shapeB->relationOf(tid).parts.size() > 1;
@@ -613,13 +625,31 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 						matchings << QString("%1|%2").arg(sid).arg(tid);
 				}
 
-				for (auto m : matchings)
-				{
-					auto matching = m.split("|");
-					auto sid = matching.front();
-					auto tid = matching.back();
-					out << QString("%1 %2\n").arg(sid).arg(tid);
-				}
+                QVector< QPair<QString,QString> > pairs;
+                for (auto m : matchings)
+                {
+                    auto matching = m.split("|");
+                    auto sid = matching.front();
+                    auto tid = matching.back();
+
+                    pairs << qMakePair(sid,tid);
+                }
+
+                jobReport["matching_pairs"].setValue(pairs);
+
+                if (isOutputMatching)
+                {
+                    QFile file(match_file);
+                    file.open(QFile::WriteOnly | QFile::Text);
+                    QTextStream out(&file);
+
+                    for(auto p : pairs)
+                    {
+                        auto sid = p.first;
+                        auto tid = p.second;
+                        out << QString("%1 %2\n").arg(sid).arg(tid);
+                    }
+                }
 			}
 		}
 	}

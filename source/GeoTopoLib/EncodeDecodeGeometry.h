@@ -84,7 +84,7 @@ inline void decodeGeometry(Structure::ShapeGraph * g)
 
             // Reconstructed point
             Vector3f isect = rayPos + (rayDir * sample.origOffset);
-            mesh_points[SurfaceMeshModel::Vertex(i)] = isect.cast<double>();
+            mesh_points[opengp::SurfaceMesh::SurfaceMeshModel::Vertex(i)] = isect.cast<double>();
         }
 
         mesh->update_face_normals();

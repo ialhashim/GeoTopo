@@ -6,9 +6,19 @@ CONFIG += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+CONFIG(debug, debug|release) {
+    CFG = debug
+} else {
+    CFG = release
+}
+
 DESTDIR = ../../bin
 TARGET = GeoTopoCorrespond
 TEMPLATE = app
+
+CONFIG(debug, debug|release) {
+    TARGET = GeoTopoCorrespondDebug
+}
 
 SOURCES +=  main.cpp\
             mainwindow.cpp
@@ -18,12 +28,6 @@ HEADERS  += mainwindow.h
 FORMS    += mainwindow.ui
 
 INCLUDEPATH += ..
-
-CONFIG(debug, debug|release) {
-    CFG = debug
-} else {
-    CFG = release
-}
 
 # GeoTopo library
 LIBS += -L$$PWD/../source/GeoTopoLib/lib/$$CFG -lGeoTopoLib
@@ -43,3 +47,8 @@ INCLUDEPATH += ../source/NURBS
 
 linux-g++{ LIBS += -lGLU }
 
+# Parallelism
+win32{
+    QMAKE_CXXFLAGS *= /openmp
+    QMAKE_CXXFLAGS *= /MP
+}

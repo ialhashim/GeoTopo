@@ -44,3 +44,9 @@ INCLUDEPATH += ../external/SurfaceMesh ../external/SurfaceMesh/surface_mesh
 # Structure Graph Library
 LIBS += -L$$PWD/../StructureGraphLib/lib/$$CFG -lStructureGraphLib
 INCLUDEPATH += ../StructureGraphLib
+
+# Parallelism
+win32{
+    QMAKE_CXXFLAGS *= /openmp
+    QMAKE_CXXFLAGS *= /MP
+}

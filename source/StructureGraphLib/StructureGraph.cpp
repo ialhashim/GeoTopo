@@ -1987,9 +1987,9 @@ QVector< QVector<QString> > Graph::nodesAsGroups()
     return asgroups;
 }
 
-QVector<POINT_ID> Graph::selectedControlPointsByColor(QColor color)
+QVector<std::pair<int, int> > Graph::selectedControlPointsByColor(QColor color)
 {
-	QVector<POINT_ID> result;
+    QVector< std::pair< int, int > > result;
 	for (int nID = 0; nID < (int)nodes.size(); nID++)
 	{
 		Node *node = nodes[nID];

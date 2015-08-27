@@ -5,6 +5,8 @@
 #include <QMainWindow>
 
 #include "TopoBlender.h"
+#include "StructureGraph.h"
+#include "GraphCorresponder.h"
 using namespace Structure;
 
 #include "ExportDynamicGraph.h"

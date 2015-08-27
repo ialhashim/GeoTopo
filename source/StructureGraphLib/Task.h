@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 #include <QGraphicsDropShadowEffect>
+#include "StructureGraph.h"
 #include "TopoBlender.h"
 #include "RMF.h"
 

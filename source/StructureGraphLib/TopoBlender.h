@@ -2,12 +2,13 @@
 
 #include <QObject>
 #include <QWidget>
-
-#include "DynamicGraph.h"
-#include "StructureGraph.h"
-#include "GraphCorresponder.h"
+#include <QSet>
+#include <QMap>
+#include <QVariant>
 
 class Scheduler;
+class GraphCorresponder;
+namespace Structure{ struct Graph; struct Node; struct Link; }
 
 struct SetNodes{
 	QSet<Structure::Node*> set;
@@ -77,8 +78,6 @@ public:
 
 // DEBUG:
 public:
-	std::vector< Vector3 > debugPoints;
-	std::vector< PairVector3 > debugLines;
 	void drawDebug();
 	void debugSuperGraphs(QString info);
 };

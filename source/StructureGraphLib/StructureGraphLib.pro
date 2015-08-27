@@ -12,10 +12,6 @@ CONFIG(debug, debug|release) {CFG = debug} else {CFG = release}
 TARGET = StructureGraphLib
 DESTDIR = $$PWD/lib/$$CFG
 
-# NURBS library
-LIBS += -L$$PWD/../NURBS/lib/$$CFG -lNURBS
-INCLUDEPATH += ../NURBS
-
 # Surface Reconstruction library
 LIBS += -L$$PWD/../Reconstruction/lib/$$CFG -lReconstruction
 INCLUDEPATH += ../Reconstruction
@@ -23,6 +19,10 @@ INCLUDEPATH += ../Reconstruction
 # Surface mesh library
 LIBS += -L$$PWD/../external/SurfaceMesh/lib/$$CFG -lSurfaceMesh
 INCLUDEPATH += ../external/SurfaceMesh ../external/SurfaceMesh/surface_mesh
+
+# NURBS library
+LIBS += -L$$PWD/../NURBS/lib/$$CFG -lNURBS
+INCLUDEPATH += ../NURBS
 
 HEADERS += StructureNode.h \
     StructureGraph.h \
@@ -83,6 +83,11 @@ SOURCES += QGraphViz/svgview.cpp
 HEADERS += QGraphViz/svgview.h
 
 FORMS += SchedulerWidget.ui GraphModifyWidget.ui GraphExplorer.ui
+
+# Parallelism
+win32{
+    QMAKE_CXXFLAGS *= /openmp
+}
 
 mac:QMAKE_CXXFLAGS += -fopenmp
 mac:QMAKE_LFLAGS += -fopenmp

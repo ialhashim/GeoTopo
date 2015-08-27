@@ -1,3 +1,4 @@
+#include "StructureGraph.h"
 #include "TaskCurve.h"
 #include "AbsoluteOrientation.h"
 

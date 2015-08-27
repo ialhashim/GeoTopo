@@ -1,7 +1,12 @@
 #pragma once
-#include "StructureGraph.h"
-#include "Task.h"
+
+#include <QMap>
 #include <QQueue>
+#include <Eigen/Core>
+
+namespace Structure{ struct Graph; struct Node; struct Link; }
+
+class Task;
 
 struct LinkConstraint{
     Structure::Link *link;
@@ -33,7 +38,7 @@ struct Relink
 
 	// Helpers
 	void moveByConstraints( Structure::Node * n, QVector<LinkConstraint> consts );
-	Vector3 getToDelta( Structure::Link * link, QString otherID );
+    Eigen::Vector3d getToDelta( Structure::Link * link, QString otherID );
 	bool doesPropagate( Task* task );
 	bool isInActiveGroup( Task* task );
 };

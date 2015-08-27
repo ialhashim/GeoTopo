@@ -1,5 +1,6 @@
 #include <QFileDialog>
 
+#include "StructureGraph.h"
 #include "Task.h"
 #include "SchedulerWidget.h"
 #include "ui_SchedulerWidget.h"

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "StructureGraph.h"
-using namespace Structure;
-
-#include "RMF.h"
+#include <QVector>
+#include <Eigen/Core>
+namespace Structure { struct Graph; struct Node; struct Curve; struct Sheet; }
 
 extern int randomCount;
 extern int uniformTriCount;
@@ -80,17 +79,9 @@ struct Synthesizer{
 	static void blendCurveBases(Structure::Curve * curve1, Structure::Curve * curve2, float alpha);
 	static void blendSheetBases(Structure::Sheet * sheet1, Structure::Sheet * sheet2, float alpha);
 
-	// Helper functions
-	static RMF consistentFrame( Structure::Curve * curve, Array1D_Vector4 & coords );
-
 	// IO
 	static void saveSynthesisData(Structure::Node *node, QString prefix, SynthData & input);
 	static int loadSynthesisData(Structure::Node *node, QString prefix, SynthData & output);
 	static void writeXYZ( QString filename, std::vector<Eigen::Vector3f> points, std::vector<Eigen::Vector3f> normals );
 };
 
-Q_DECLARE_METATYPE(Eigen::Vector3f)
-Q_DECLARE_METATYPE(QVector<float>)
-Q_DECLARE_METATYPE(QVector<Vec2f>)
-Q_DECLARE_METATYPE(QVector<Eigen::Vector3f>)
-Q_DECLARE_METATYPE(QVector<ParameterCoord>)

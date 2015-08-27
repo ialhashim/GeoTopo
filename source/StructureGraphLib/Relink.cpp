@@ -1,6 +1,7 @@
 #include <QStack>
 
 #include "Relink.h"
+#include "Task.h"
 #include "Scheduler.h"
 
 #include "MinBall.h"
@@ -368,7 +369,7 @@ void Relink::moveByConstraints( Structure::Node * n, QVector<LinkConstraint> con
 	}
 }
 
-Vector3 Relink::getToDelta( Structure::Link * link, QString toOtherID )
+Eigen::Vector3d Relink::getToDelta( Structure::Link * link, QString toOtherID )
 {
 	// by default delta = n2 - n1
 	Vector3 delta = link->property["blendedDelta"].value<Vector3>();

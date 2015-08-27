@@ -1,18 +1,21 @@
 #pragma once;
 
-#include "SurfaceMeshModel.h"
-#include "StructureGraph.h"
-
-#include <vector>
+#include <QObject>
 #include <QVector>
 #include <QMap>
+#include <QSet>
+#include <vector>
+
+namespace Structure{ struct Graph; struct Node; struct Curve; struct Sheet; }
 
 typedef std::vector< std::vector<float> > MATRIX;
+typedef std::pair< QVector<QString>, QVector<QString> > PART_LANDMARK;
+typedef std::pair< int, int > POINT_ID;
+typedef std::pair< QVector<POINT_ID>, QVector<POINT_ID> > POINT_LANDMARK;
 
 class GraphCorresponder : public QObject
 {
-	Q_OBJECT
-
+    Q_OBJECT
 public:
     GraphCorresponder();
     GraphCorresponder(Structure::Graph *source, Structure::Graph *target);

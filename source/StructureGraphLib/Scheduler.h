@@ -1,10 +1,10 @@
 #pragma once
 
-#include "StructureGraph.h"
 #include <QGraphicsScene>
 #include <QDockWidget>
 #include "TimelineSlider.h"
 
+namespace Structure{ struct Graph; struct Node; }
 class Task;
 class SchedulerWidget;
 
@@ -24,7 +24,7 @@ public:
 	// Properties
 	int rulerHeight;
 	bool isForceStop;
-	PropertyMap property;
+    QVariantMap property;
 	QVector<Task*> tasks;
 
 	SchedulerWidget * widget;
@@ -86,6 +86,8 @@ public:
 	static int startOf( QList<Task*> list_tasks );
 	static int endOf( QList<Task*> list_tasks );
 	void trimTasks();
+    void moveTaskToStart( QString nodeID );
+    void moveAllButTaskToTime(QString nodeID, int time);
 
 	void drawDebug();
 

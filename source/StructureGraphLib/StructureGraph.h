@@ -149,7 +149,7 @@ namespace Structure{
         void setAllControlPoints(Array2D_Vector3 all_points);
 
 		// Point Landmarks
-		QVector<POINT_ID> selectedControlPointsByColor(QColor color);
+        QVector< std::pair< int, int > > selectedControlPointsByColor(QColor color);
 
 		// DEBUG:
 		std::vector<Vector3> debugPoints,debugPoints2,debugPoints3;

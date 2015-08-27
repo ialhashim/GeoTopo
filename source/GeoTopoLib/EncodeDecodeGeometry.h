@@ -4,10 +4,35 @@
 
 #include "myglobals.h"
 
+#include "RMF.h"
+
+Q_DECLARE_METATYPE(QVector<ParameterCoord>)
+Q_DECLARE_METATYPE(std::vector<RMF::Frame>)
+
 using namespace Eigen;
 
 namespace ShapeGeometry
 {
+// Helper function
+RMF consistentFrame( Structure::Curve * curve, Array1D_Vector4 & coords, int CURVE_FRAME_COUNT = 101 )
+{
+    // Generate consistent frames along curve
+    std::vector<Scalar> times;
+    curve->curve.SubdivideByLengthTime(CURVE_FRAME_COUNT, times);
+    foreach(Scalar t, times) coords.push_back(Eigen::Vector4d(t,0,0,0));
+    std::vector<Vector3> samplePoints;
+    foreach(Eigen::Vector4d c, coords) samplePoints.push_back( curve->position(c) );
+
+    RMF rmf = RMF( samplePoints );
+    rmf.compute();
+    //rmf.generate();
+
+    // Save RMF frames
+    curve->property["rmf_frames"].setValue(rmf.U);
+
+    return rmf;
+}
+
 inline void encodeGeometry(Structure::ShapeGraph * g)
 {
     if (g->property["isGeometryEncoded"].toBool()) return;
@@ -46,7 +71,7 @@ inline void decodeGeometry(Structure::ShapeGraph * g)
         // Generate consistent frames along curve
         Array1D_Vector4 coords;
         RMF rmf;
-        if (n->type() == Structure::CURVE) rmf = Synthesizer::consistentFrame((Structure::Curve*)n, coords);
+        if (n->type() == Structure::CURVE) rmf = consistentFrame((Structure::Curve*)n, coords);
 
         // Collapsed sheet
         if (n->type() == Structure::SHEET)
@@ -54,8 +79,8 @@ inline void decodeGeometry(Structure::ShapeGraph * g)
             auto sheet = (Structure::Sheet*)n;
             Structure::Curve curve_u(NURBS::NURBSCurved::createCurveFromPoints(sheet->surface.GetControlPointsU(0)), "curveU");
             Structure::Curve curve_v(NURBS::NURBSCurved::createCurveFromPoints(sheet->surface.GetControlPointsV(0)), "curveV");
-            if (curve_u.area() < 1e-6) rmf = Synthesizer::consistentFrame(&curve_v, coords);
-            if (curve_v.area() < 1e-6) rmf = Synthesizer::consistentFrame(&curve_u, coords);
+            if (curve_u.area() < 1e-6) rmf = consistentFrame(&curve_v, coords);
+            if (curve_v.area() < 1e-6) rmf = consistentFrame(&curve_u, coords);
         }
 
         for (int i = 0; i < encoding.size(); i++){

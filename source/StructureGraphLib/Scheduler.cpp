@@ -2,6 +2,8 @@
 #include <QtConcurrent/QtConcurrent> // For easy multi-threading
 #include <QQueue>
 
+#include "StructureGraph.h"
+
 #include "TaskCurve.h"
 #include "TaskSheet.h"
 #include "Scheduler.h"
@@ -16,10 +18,12 @@
 
 //#include "SoftwareRenderer.h"
 
-#include "TaskGroups.h"
-
 #include "Scheduler.h"
 #include "SchedulerWidget.h"
+
+using namespace Structure;
+
+#include "TaskGroups.h"
 
 Q_DECLARE_METATYPE( QSet<int> ) // for tags
 
@@ -352,7 +356,22 @@ void Scheduler::trimTasks()
 				slideTasksTime(after, delta);
 		}
 		curTime += 50;
-	}
+    }
+}
+
+void Scheduler::moveTaskToStart(QString nodeID)
+{
+    auto t = getTaskFromNodeID(nodeID);
+    t->setStart(0);
+}
+
+void Scheduler::moveAllButTaskToTime(QString nodeID, int time)
+{
+    for(Task * t : tasks)
+    {
+        if(t->nodeID == nodeID) continue;
+        t->setStart(time);
+    }
 }
 
 void Scheduler::groupStart( Structure::Graph * g, QList<Task*> curTasks, int curStart, int & futureStart )
@@ -648,10 +667,17 @@ void Scheduler::executeAll()
             emit( progressChanged(percent) );
         }
 
+        if(property.contains("forceStopTime")){
+            if(property["forceStopTime"].toDouble() <= globalTime){
+                isForceStop = true;
+            }
+        }
+
 		if( isForceStop ) break;
 	}
 
-	finalize();
+    if(!property.contains("forceStopTime"))
+        finalize();
 
 	property["progressDone"] = true;
 

@@ -7,6 +7,7 @@
 GlSplatRenderer * splat_renderer = NULL;
 #endif
 
+#include "StructureGraph.h"
 #include "SynthesisManager.h"
 #include "QuickMeshDraw.h"
 
@@ -25,6 +26,9 @@ GlSplatRenderer * splat_renderer = NULL;
 
 // For proxies
 #include "Octree.h"
+
+using namespace Structure;
+
 #include <QGLFunctions>
 QGLFunctions * glFuncs = NULL;
 QGLFunctions * newGLFunction() { return new QGLFunctions(QGLContext::currentContext()); }
@@ -37,7 +41,10 @@ typedef opengp::Surface_mesh::Vertex Vertex;
 QStack<double> nurbsQuality;
 
 Q_DECLARE_METATYPE( QVector<bool> )
-	
+Q_DECLARE_METATYPE( QVector<ParameterCoord> )
+Q_DECLARE_METATYPE( QVector<Eigen::Vector2f> )
+Q_DECLARE_METATYPE( QVector<Eigen::Vector3f> )
+
 SynthesisManager::SynthesisManager( GraphCorresponder * gcorr, Scheduler * scheduler, TopoBlender * blender, int samplesCount ) :
 	gcorr(gcorr), scheduler(scheduler), blender(blender), samplesCount(samplesCount), isSplatRenderer(false), 
 		splatSize(0.02), pointSize(3), color(QColor::fromRgbF(0.9, 0.9, 0.9))
@@ -94,6 +101,8 @@ void SynthesisManager::genSynData()
     // Generate synthesis data for each corresponding node
     foreach(Structure::Node * snode, sgraph->nodes)
     {
+		if (snode->property["skipSynth"].toBool()) continue;
+
         Structure::Node * tnode = tgraph->getNode( snode->property["correspond"].toString() );
 
         //int sampling_method = Synthesizer::Random | Synthesizer::Features;
@@ -279,12 +288,14 @@ void SynthesisManager::renderCurrent(Structure::Graph * currentGraph, QString pa
     qDebug() << QString("Current graph rendered [%1 ms]").arg(timer.elapsed());
 }
 
-void SynthesisManager::renderGraph( Structure::Graph graph, QString filename, bool isOutPointCloud, 
-									int reconLevel, bool isOutGraph /*= false*/, bool isOutParts /*= true */ )
+void SynthesisManager::renderGraph(Graph &fromGraph, QString filename, bool isOutPointCloud,
+                                    int reconLevel, bool isOutGraph /*= false*/, bool isOutParts /*= true */ )
 {
     QMap<QString, SurfaceMeshModel*> reconMeshes;
 
 	renderData.clear();
+
+    Graph graph = fromGraph;
 
     geometryMorph(renderData, &graph, false);
 
@@ -604,6 +615,28 @@ Structure::Graph * SynthesisManager::graphNamed( QString graphName )
 	allgraphs[scheduler->activeGraph->name()] = scheduler->activeGraph;
 	allgraphs[scheduler->targetGraph->name()] = scheduler->targetGraph;
 	return allgraphs[graphName];
+}
+
+SynthesisManager::OrientedCloud SynthesisManager::reconstructGeometryNode(Structure::Node * n, double t)
+{
+    Structure::Graph * activeGraph = scheduler->activeGraph;
+    Structure::Graph * targetGraph = scheduler->targetGraph;
+
+    QString ag = activeGraph->name();
+    QString tg = targetGraph->name();
+    QString tgnid = n->property["correspond"].toString();
+
+    SynthData ndata;
+    ndata["node1"] = synthData[ag][n->id];
+    ndata["node2"] = synthData[tg][tgnid];
+
+    bool isApprox = false;
+
+    QVector<Eigen::Vector3f> points, normals;
+    if(n->type() == Structure::CURVE) Synthesizer::blendGeometryCurves((Structure::Curve *)n, t, ndata, points, normals, isApprox);
+    if(n->type() == Structure::SHEET) Synthesizer::blendGeometrySheets((Structure::Sheet *)n, t, ndata, points, normals, isApprox);
+
+    return SynthesisManager::OrientedCloud(points, normals);
 }
 
 void SynthesisManager::drawSampled()
@@ -1124,7 +1157,7 @@ void SynthesisManager::makeProxies(int numSides, int numSpineJoints)
 
 std::vector<SimplePolygon> SynthesisManager::drawWithProxies(Graph *g)
 {
-	std::vector<SimplePolygon> geometries;
+    std::vector< SimplePolygon > geometries;
 
 	int numSides = proxyOptions["numSides"].toInt();
 	int numSpineJoints = proxyOptions["numSpineJoints"].toInt();
@@ -1186,7 +1219,7 @@ std::vector<SimplePolygon> SynthesisManager::drawWithProxies(Graph *g)
 				{
 					QVector<Vector3> polygon;
 					for(auto v : nodeMesh->vertices(f))	polygon << (points[v] + translation);
-					geometries.push_back(SimplePolygon(polygon.toStdVector(), solidColor, false));
+                    geometries.push_back(SimplePolygon(polygon.toStdVector(), solidColor, false));
 				}
 
 				continue;
@@ -1236,7 +1269,7 @@ std::vector<SimplePolygon> SynthesisManager::drawWithProxies(Graph *g)
 
                 std::reverse(polygon.begin(), polygon.end());
 
-				geometries.push_back(SimplePolygon(polygon.toStdVector(), proxyColor, isWireframe));
+                geometries.push_back(SimplePolygon(polygon.toStdVector(), proxyColor, isWireframe));
 			}
 		}
 	}

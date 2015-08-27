@@ -1,3 +1,4 @@
+#include "StructureGraph.h"
 #include "GraphCorresponder.h"
 
 #include <QFile>
@@ -7,6 +8,12 @@
 #include "GraphDistance.h"
 
 #define INVALID_VALUE -1
+
+static bool operator<(const PART_LANDMARK & a, const PART_LANDMARK & b){
+    QString keyA = a.first.front() + a.second.front();
+    QString keyB = b.first.front() + b.second.front();
+    return keyA < keyB;
+}
 
 GraphCorresponder::GraphCorresponder()
 {

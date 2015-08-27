@@ -10,13 +10,23 @@
 #include "SimilarSampling.h"
 #include "PCA.h"
 
+#include "StructureGraph.h"
 #include "Synthesizer.h"
 #include "weld.h"
+#include "RMF.h"
+
+using namespace Structure;
+
+Q_DECLARE_METATYPE(Eigen::Vector3f)
+Q_DECLARE_METATYPE(QVector<float>)
+Q_DECLARE_METATYPE(QVector<Vec2f>)
+Q_DECLARE_METATYPE(QVector<Eigen::Vector3f>)
+Q_DECLARE_METATYPE(QVector<ParameterCoord>)
 Q_DECLARE_METATYPE(RMF)
 Q_DECLARE_METATYPE(RMF::Frame)
 Q_DECLARE_METATYPE(std::vector<RMF::Frame>)
 Q_DECLARE_METATYPE(NanoKdTree)
-Q_DECLARE_METATYPE( Structure::Sheet* )
+Q_DECLARE_METATYPE(Structure::Sheet*)
 
 using namespace Eigen;
 
@@ -46,7 +56,7 @@ int randomCount = RANDOM_COUNT;
 int uniformTriCount = UNIFORM_TRI_SAMPLES;
 
 // Helper functions
-RMF Synthesizer::consistentFrame( Structure::Curve * curve, Array1D_Vector4 & coords )
+RMF consistentFrame( Structure::Curve * curve, Array1D_Vector4 & coords )
 {
 	// Generate consistent frames along curve
 	std::vector<Scalar> times;

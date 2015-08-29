@@ -14,7 +14,7 @@ using namespace Eigen;
 namespace ShapeGeometry
 {
 // Helper function
-RMF consistentFrame( Structure::Curve * curve, Array1D_Vector4 & coords, int CURVE_FRAME_COUNT = 101 )
+static inline RMF consistentFrame( Structure::Curve * curve, Array1D_Vector4 & coords, int CURVE_FRAME_COUNT = 101 )
 {
     // Generate consistent frames along curve
     std::vector<Scalar> times;

@@ -1530,6 +1530,35 @@ void Graph::removeNode( QString nodeID )
 	nodes.remove(node_idx);
 }
 
+Node * Graph::replaceNode(QString nodeID, Node * newNode, bool isDeleteOriginal)
+{
+    Node * n = getNode(nodeID);
+
+    // Collect what should connect, remove old node edges:
+    QVector<QString> neighbours;
+    foreach(Link * e, getEdges(nodeID))
+    {
+        neighbours << e->otherNode(nodeID)->id;
+
+        int edge_idx = edges.indexOf(e);
+        delete edges[edge_idx];
+        edges[edge_idx] = NULL;
+        edges.remove(edge_idx);
+    }
+
+    // Replace old node
+    int nidx = nodes.indexOf(n);
+    nodes[nidx] = newNode;
+    newNode->id = n->id;
+
+    // Connect neighbours to new node
+    for(auto nj : neighbours) addEdge(nj, nodeID);
+
+    if(isDeleteOriginal) delete n;
+
+    return newNode;
+}
+
 void Graph::removeIsolatedNodes()
 {
 	foreach(Node * n, nodes){

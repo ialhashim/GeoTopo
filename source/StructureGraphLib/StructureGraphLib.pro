@@ -87,6 +87,10 @@ FORMS += SchedulerWidget.ui GraphModifyWidget.ui GraphExplorer.ui
 # Parallelism
 win32{
     QMAKE_CXXFLAGS *= /openmp
+
+    # Enable debuging in release mode
+    QMAKE_CXXFLAGS_RELEASE += /Zi
+    QMAKE_LFLAGS_RELEASE += /DEBUG
 }
 
 mac:QMAKE_CXXFLAGS += -fopenmp

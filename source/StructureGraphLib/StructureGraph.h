@@ -47,7 +47,8 @@ namespace Structure{
 		void removeEdge( Node * n1, Node * n2 );
 		void removeEdge( QString n1_id, QString n2_id );
 		void removeEdges( QString nodeID );
-		void removeIsolatedNodes();
+        void removeIsolatedNodes();
+        Node* replaceNode(QString nodeID, Node *newNode, bool isDeleteOriginal = true);
 
 		void addGroup(QVector<QString> nodes);
 		void removeGroup(int groupIDX);

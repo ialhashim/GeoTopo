@@ -42,6 +42,11 @@ void GraphCorresponder::init( Structure::Graph *source, Structure::Graph *target
     this->sg = source;
     this->tg = target;
 
+    // Reassign index for nodes
+    int si = 0, ti = 0;
+    for(auto n : sg->nodes) n->property["index"] = si++;
+    for(auto n : tg->nodes) n->property["index"] = ti++;
+
     // Useful for testing
     if( qMin(source->nodes.size(), target->nodes.size()) < 3 ) scoreThreshold = 1.0f;
 

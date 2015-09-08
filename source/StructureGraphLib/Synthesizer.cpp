@@ -478,7 +478,11 @@ void Synthesizer::sampleGeometryCurve( QVector<ParameterCoord> samples, Structur
 		else
 		{
             Vector3 isect = octree.closestIntersectionPoint(ray, &faceIndex, true);
-            if(faceIndex < 0) faceIndex = 0;
+
+            if(faceIndex < 0){
+                isect = rayPosition;
+                faceIndex = 0;
+            }
 
 			// Store the offset
 			offsets[ i ] = (Vector3(isect - rayPos.cast<double>())).norm();
@@ -545,8 +549,13 @@ void Synthesizer::sampleGeometrySheet( QVector<ParameterCoord> samples, Structur
 		{
 			// Store the offset
             Vector3 isect = octree.closestIntersectionPoint(ray, &faceIndex, true);
+
+            if(faceIndex < 0){
+                isect = rayPos;
+                faceIndex = 0;
+            }
+
 			offsets[i] = (isect - rayPos).norm();
-            if(faceIndex < 0) faceIndex = 0;
 
 			// Code the normal relative to local frame
             vn = fnormals[SurfaceMeshModel::Face(faceIndex)];

@@ -574,8 +574,8 @@ void Energy::GuidedDeformation::topologicalOpeartions(Structure::ShapeGraph *sha
 			// Replace samples
 			snode_sheet->property["samples_coords"].setValue(samples);
 				
-			// Clean up
-			shapeA->removeNode(snode_sheet_copy->id);
+            // Clean up
+            shapeA->removeNode(snode_sheet_copy->id);
 		}
 
 		lb.clear();

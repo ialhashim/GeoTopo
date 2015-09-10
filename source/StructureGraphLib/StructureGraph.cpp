@@ -1998,6 +1998,31 @@ bool Graph::shareGroup(QString nodeA, QString nodeB)
     return false;
 }
 
+Vector3 Graph::groupCenter(QString nodeID)
+{
+    Vector3 sum(0,0,0);
+    int count = 0;
+
+    foreach(QVector<QString> group, groups)
+    {
+        if(group.contains(nodeID)){
+            for(auto nid : group){
+                sum += getNode(nid)->center();
+                count++;
+            }
+        }
+    }
+
+    Vector3 group_center(0,0,0);
+
+    if(count)
+        group_center = sum / count;
+    else
+        group_center = getNode(nodeID)->center();
+
+    return group_center;
+}
+
 QVector< QVector<QString> > Graph::nodesAsGroups()
 {
     QVector< QVector<QString> > asgroups;

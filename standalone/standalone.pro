@@ -12,7 +12,7 @@ CONFIG(debug, debug|release) {
     CFG = release
 }
 
-DESTDIR = ../../bin
+DESTDIR = $$PWD/../bin
 TARGET = GeoTopoCorrespond
 TEMPLATE = app
 

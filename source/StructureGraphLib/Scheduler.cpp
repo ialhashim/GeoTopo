@@ -365,11 +365,11 @@ void Scheduler::moveTaskToStart(QString nodeID)
     t->setStart(0);
 }
 
-void Scheduler::moveAllButTaskToTime(QString nodeID, int time)
+void Scheduler::moveAllButTasksToTime(QVector<QString> nodeIDs, int time)
 {
     for(Task * t : tasks)
     {
-        if(t->nodeID == nodeID) continue;
+        if(nodeIDs.contains(t->nodeID)) continue;
         t->setStart(time);
     }
 }

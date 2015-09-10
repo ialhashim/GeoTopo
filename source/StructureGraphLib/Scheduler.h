@@ -87,7 +87,7 @@ public:
 	static int endOf( QList<Task*> list_tasks );
 	void trimTasks();
     void moveTaskToStart( QString nodeID );
-    void moveAllButTaskToTime(QString nodeID, int time);
+    void moveAllButTasksToTime( QVector<QString> nodeID, int time );
 
 	void drawDebug();
 

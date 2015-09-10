@@ -793,7 +793,22 @@ void TopoBlender::equalizeSuperNodeTypes()
 		Structure::Node* snode = super_sg->getNode(snodeID);
 		Structure::Node* tnode = super_tg->getNode(tnodeID);
 
-		bool equalType = true;
+        bool equalType = true;
+
+		// These should not happen
+		{
+			if (snode == nullptr){
+				tnode->property["type_equalized"] = equalType;
+				continue;
+			}
+			if (tnode == nullptr){
+				snode->property["type_equalized"] = equalType;
+				continue;
+			}
+			if (snode == nullptr && tnode == nullptr)
+				continue;
+		}
+
 		if (snode->type() != tnode->type())
 		{
 			equalType = false;

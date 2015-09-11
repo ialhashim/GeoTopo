@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QStack>
 #include <QColor>
+#include <QVector3D>
 #include <vector>
 
 #ifdef SPLAT_RENDERING
@@ -99,6 +100,16 @@ public:
 
     typedef QPair< QVector<Eigen::Vector3f>,QVector<Eigen::Vector3f> > OrientedCloud;
     OrientedCloud reconstructGeometryNode(Structure::Node *n, double t);
+
+    struct BasicMesh{
+        QVector<QVector3D> points, normals;
+        QColor color;
+        QString name;
+        bool isPoints;
+        BasicMesh() : isPoints(false){}
+    };
+
+    QVector<BasicMesh> constructShapeGeometry( Structure::Graph * activeGraph );
 
 public slots:
     void generateSynthesisData();

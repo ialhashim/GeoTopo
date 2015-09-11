@@ -669,6 +669,85 @@ SynthesisManager::OrientedCloud SynthesisManager::reconstructGeometryNode(Struct
     return SynthesisManager::OrientedCloud(points, normals);
 }
 
+QVector<SynthesisManager::BasicMesh> SynthesisManager::constructShapeGeometry(Graph *activeGraph)
+{
+    QVector<SynthesisManager::BasicMesh> geometry;
+
+    beginFastNURBS();
+    geometryMorph( currentData, activeGraph, true, POINTS_LIMIT );
+    endFastNURBS();
+
+    // Do not reconstruct fixed parts
+    foreach(Node * n, activeGraph->nodes)
+    {
+        SynthesisManager::BasicMesh nmesh;
+
+        const QVector<Eigen::Vector3f> & points = currentData[n->id]["points"].value< QVector<Eigen::Vector3f> >();
+        const QVector<Eigen::Vector3f> & normals = currentData[n->id]["normals"].value< QVector<Eigen::Vector3f> >();
+
+        bool isMesh = false;
+
+        if( points.isEmpty() && property["isEnabled"].toBool() )
+        {
+            if(!n->property["shrunk"].toBool() && !n->property["zeroGeometry"].toBool())
+            {
+                Vector3 c0 = n->controlPoints().front();
+
+                if( n->property["taskIsDone"].toBool() ){
+                    n = scheduler->targetGraph->getNode( n->property["correspond"].toString() );
+                }
+
+                QSharedPointer<SurfaceMeshModel> nodeMesh = n->property["mesh"].value< QSharedPointer<SurfaceMeshModel> >();
+
+                Vector3 deltaMesh = n->property["deltaMesh"].value<Vector3>();
+
+                Vector3 v0 = nodeMesh->get_vertex_property<Vector3>(VPOINT)[Vertex(0)];
+
+                Vector3 translation = c0 - (v0 - deltaMesh);
+
+                //QuickMeshDraw::drawMeshSolid( nodeMesh.data(), color, translation );
+                nodeMesh->update_face_normals();
+
+                for(auto f : nodeMesh->faces())
+                {
+                    auto fn = nodeMesh->face_normals()[f];
+                    QVector3D normal(fn[0],fn[1],fn[2]);
+                    for(auto vf : nodeMesh->vertices(f))
+                    {
+                        auto vp = nodeMesh->vertex_coordinates()[vf] + translation;
+
+                        QVector3D point(vp[0],vp[1],vp[2]);
+
+                        nmesh.points << point;
+                        nmesh.normals << normal;
+                    }
+                }
+
+                isMesh = true;
+                nmesh.isPoints = false;
+            }
+        }
+
+        if(!isMesh)
+        {
+            nmesh.isPoints = true;
+
+            for(int i = 0; i < (int)points.size(); i++)
+            {
+                nmesh.points << QVector3D(points[i][0], points[i][1], points[i][2]);
+                nmesh.normals << QVector3D(normals[i][0], normals[i][1], normals[i][2]);
+            }
+        }
+
+        nmesh.name = n->id;
+        nmesh.color = n->vis_property["color"].value<QColor>();
+
+        geometry.push_back(nmesh);
+    }
+
+    return geometry;
+}
+
 void SynthesisManager::drawSampled()
 {
     if(!scheduler) return;
@@ -899,6 +978,7 @@ void SynthesisManager::geometryMorph( SynthData & data, Structure::Graph * graph
         data[n->id]["normals"].setValue( cleanNormals );
     }
 }
+
 
 void SynthesisManager::drawSynthesis( Structure::Graph * activeGraph )
 {

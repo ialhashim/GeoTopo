@@ -91,6 +91,9 @@ win32{
     # Enable debuging in release mode
     QMAKE_CXXFLAGS_RELEASE += /Zi
     QMAKE_LFLAGS_RELEASE += /DEBUG
+
+    # Intel's embree 2 library
+    DEFINES += USE_EMBREE
 }
 
 mac:QMAKE_CXXFLAGS += -fopenmp

@@ -701,7 +701,8 @@ void Synthesizer::reconstructGeometryCurve( Structure::Curve * base_curve, const
 		double curveLength = base_curve->curve.GetTotalLength();
 		curveLength = qMax(curveLength, 1e-4);
 
-		auto points = base_curve->discretizedPoints(curveLength / steps).front();
+        auto coords = base_curve->discretizedPoints(curveLength / steps);
+        auto points = coords.front();
         for(auto c : points)
             proxy.push_back( base_curve->position(c).cast<float>() );
 

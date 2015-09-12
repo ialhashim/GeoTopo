@@ -10,7 +10,7 @@
 #include <QSet>
 #include <QtOpenGL>
 
-#include "surface_mesh/Surface_mesh.h"
+#include "SurfaceMeshModel.h"
 #include "primitives.h"
 
 typedef std::set<int> IndexSet;
@@ -23,14 +23,83 @@ typedef TriAccel<double, Eigen::Vector3d> TriAcceld;
 #define USE_TRI_ACCEL 1
 #define DEFAULT_OCTREE_NODE_SIZE 40
 
+#ifdef USE_EMBREE
+#include "embree2/rtcore.h"
+#include "embree2/rtcore_ray.h"
+#pragma comment(lib, "embree.lib")
+namespace embree{
+    struct embreeVertex   { float x, y, z, a; };
+    struct embreeTriangle { int v0, v1, v2; };
+};
+using namespace embree;
+#endif
+
 class Octree
 {
 public:
 
     Octree(){ trianglePerNode = -1; parent = NULL; mesh = NULL; }
 
-    Octree( opengp::Surface_mesh * useMesh, int triPerNode = DEFAULT_OCTREE_NODE_SIZE )
+    ~Octree(){
+#ifdef USE_EMBREE
+    RTCScene scene = (RTCScene) accelerator;
+    rtcDeleteScene( scene );
+    rtcExit();
+#endif
+    }
+
+
+    void * accelerator;
+
+    Octree( opengp::SurfaceMesh::SurfaceMeshModel * useMesh, int triPerNode = DEFAULT_OCTREE_NODE_SIZE ) : mesh(useMesh)
     {
+
+#ifdef USE_EMBREE
+        // Using Intel's accelerated ray tracer
+        {
+            /* initialize ray tracing core */
+            rtcInit( NULL );
+
+            /* create scene */
+            RTCScene scene = rtcNewScene( RTC_SCENE_ROBUST, RTC_INTERSECT1 );
+
+            /* Triangle mesh loading */
+            int numTriangles = mesh->n_faces();
+            int numVertices = mesh->n_vertices();
+            unsigned int geomID = rtcNewTriangleMesh(scene, RTC_GEOMETRY_STATIC, numTriangles, numVertices, 1);
+
+            /* set vertex */
+            embreeVertex* vertices = (embreeVertex*) rtcMapBuffer(scene, geomID, RTC_VERTEX_BUFFER);
+            for(int i = 0; i < numVertices; i++)
+            {
+                auto p = mesh->vertex_coordinates()[opengp::SurfaceMesh::SurfaceMeshModel::Vertex(i)];
+                vertices[i].x = p.x();
+                vertices[i].y = p.y();
+                vertices[i].z = p.z();
+            }
+            rtcUnmapBuffer(scene, geomID, RTC_VERTEX_BUFFER);
+
+            /* set triangles */
+            embreeTriangle* triangles = (embreeTriangle*) rtcMapBuffer(scene, geomID, RTC_INDEX_BUFFER);
+            for(int i = 0; i < numTriangles; i++)
+            {
+                std::vector<int> mesh_triangle;
+                for(auto v : mesh->vertices(opengp::SurfaceMesh::SurfaceMeshModel::Face(i))) mesh_triangle.push_back(v.idx());
+
+                triangles[i].v0 = mesh_triangle[0];
+                triangles[i].v1 = mesh_triangle[1];
+                triangles[i].v2 = mesh_triangle[2];
+            }
+            rtcUnmapBuffer(scene, geomID, RTC_INDEX_BUFFER);
+
+            /* commit changes to scene */
+            rtcCommit (scene);
+
+            accelerator = scene;
+        }
+        return;
+#endif
+
         this->parent = NULL;
         this->mesh = useMesh;
         this->trianglePerNode = triPerNode;
@@ -44,7 +113,7 @@ public:
         this->initBuild(allTris, trianglePerNode);
     }
 
-    Octree( int triPerNode, const BoundingBox& bb, const std::vector<Surface_mesh::Face>& tris, Surface_mesh * useMesh )
+    Octree( int triPerNode, const BoundingBox& bb, const std::vector<Surface_mesh::Face>& tris, opengp::SurfaceMesh::SurfaceMeshModel * useMesh )
     {
         this->parent = NULL;
         this->mesh = useMesh;
@@ -63,6 +132,32 @@ public:
     
     Eigen::Vector3d closestIntersectionPoint( const Ray & ray, int * faceIndex, bool isRobsut = false )
     {
+#ifdef USE_EMBREE
+
+        Vector3 p(ray.origin), d(ray.direction);
+        RTCScene scene = (RTCScene) accelerator;
+        {
+            /* initialize ray */
+            RTCRay ray;
+            ray.org[0] = p[0]; ray.org[1] = p[1]; ray.org[2] = p[2];
+            ray.dir[0] = d[0]; ray.dir[1] = d[1]; ray.dir[2] = d[2];
+            ray.tnear = Vector3::Scalar(0);
+            ray.tfar = std::numeric_limits<Vector3::Scalar>::infinity();
+            ray.geomID = RTC_INVALID_GEOMETRY_ID;
+            ray.primID = RTC_INVALID_GEOMETRY_ID;
+            ray.mask = -1;
+            ray.time = 0;
+
+            /* intersect ray with scene */
+            rtcIntersect( scene, ray );
+
+            // Result
+            if(faceIndex) *faceIndex = ray.primID;
+            Vector3 hitPoint = p + (d * ray.tfar);
+            return hitPoint;
+        }
+#endif
+
         HitResult res, best_res;
         Eigen::Vector3d isetpoint(0.0,0.0,0.0);
         double minDistance = DBL_MAX;
@@ -143,7 +238,7 @@ public:
 
 private:
     int trianglePerNode;
-    Surface_mesh * mesh;
+    opengp::SurfaceMesh::SurfaceMeshModel * mesh;
     Surface_mesh::Vertex_property<Eigen::Vector3d> points;
 
     void initBuild( std::vector<Surface_mesh::Face>& tris, int triPerNode )

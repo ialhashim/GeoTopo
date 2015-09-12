@@ -674,7 +674,7 @@ QVector<SynthesisManager::BasicMesh> SynthesisManager::constructShapeGeometry(Gr
     QVector<SynthesisManager::BasicMesh> geometry;
 
     beginFastNURBS();
-    geometryMorph( currentData, activeGraph, true, POINTS_LIMIT );
+    geometryMorph( currentData, activeGraph, false, POINTS_LIMIT );
     endFastNURBS();
 
     // Do not reconstruct fixed parts

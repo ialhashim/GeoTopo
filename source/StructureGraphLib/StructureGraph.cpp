@@ -2259,6 +2259,13 @@ void Graph::cutNode(QString nodeID, int cutCount)
 
         // Remove original node
         removeNode(nodeID);
+
+		NodeGroups newGroups;
+		for (auto grp : groups){
+			grp.removeAll(nodeID);
+			newGroups << grp;
+		}
+		groups = newGroups;
     }
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "ShapeGraph.h"
-#include "NanoKdTree.h"
+class NanoKdTree;
 #include "EnergyGuidedDeformation.h"
 
 struct EvaluateCorrespondence

@@ -56,7 +56,7 @@ namespace Energy
 		PropertyMap property;
 
 		static void preprocess(Structure::ShapeGraph * shapeA, Structure::ShapeGraph * shapeB);
-		void searchAll(Structure::ShapeGraph * shapeA, Structure::ShapeGraph * shapeB, QVector<Energy::SearchNode> & roots);
+        void searchAll(Structure::ShapeGraph * shapeA, Structure::ShapeGraph * shapeB, QVector<Energy::SearchNode> & roots, bool isSaveKeyframes, int k_top = 4);
 
 		static void topologicalOpeartions(Structure::ShapeGraph *shapeA, Structure::ShapeGraph *shapeB, QStringList & la, QStringList & lb);
 		static void applyDeformation(Structure::ShapeGraph *shapeA, Structure::ShapeGraph *shapeB, const QStringList & la, const QStringList & lb, const QSetString & fixed, bool isSaveKeyframes = false);

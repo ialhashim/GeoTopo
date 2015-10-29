@@ -392,7 +392,7 @@ double BatchProcess::executeJob(QString sourceFile, QString targetFile, QJsonObj
 	else
 	{
 		// Search for all solutions
-		egd.searchAll(shapeA.data(), shapeB.data(), search_roots);
+        egd.searchAll(shapeA.data(), shapeB.data(), search_roots, false);
 
 		auto all_solutions = egd.solutions();
 		numNodesSearched = all_solutions.size();

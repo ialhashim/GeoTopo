@@ -31,7 +31,7 @@ void Energy::GuidedDeformation::preprocess(Structure::ShapeGraph * shapeA, Struc
 	EvaluateCorrespondence::prepare(shapeB);
 }
 
-void Energy::GuidedDeformation::searchAll(Structure::ShapeGraph * shapeA, Structure::ShapeGraph * shapeB, QVector<Energy::SearchNode> & roots)
+void Energy::GuidedDeformation::searchAll(Structure::ShapeGraph * shapeA, Structure::ShapeGraph * shapeB, QVector<Energy::SearchNode> & roots, bool isSaveKeyframes, int k_top)
 {
 	if (roots.empty()) return;
 
@@ -71,10 +71,10 @@ void Energy::GuidedDeformation::searchAll(Structure::ShapeGraph * shapeA, Struct
 			auto & path = *pathItr;
 
 			// Apply deformation given current assignment
-			applyAssignment(&path, false);
+            applyAssignment(&path, isSaveKeyframes);
 
 			// Collect valid suggestions
-			auto suggested_children = suggestChildren(path, 4);
+            auto suggested_children = suggestChildren(path, k_top);
 			for (auto & child : suggested_children)
 				searchTree.append_child(pathItr, child);
 			path.num_children = suggested_children.size();
@@ -135,6 +135,13 @@ QVector<Energy::SearchNode> Energy::GuidedDeformation::suggestChildren(Energy::S
 	// Hard coded thresholding to limit search space
 	double candidate_threshold = 0.5;
 	double cost_threshold = 0.3;
+
+    if(path.shapeA->property["no_threshold"].toBool())
+    {
+        candidate_threshold = 1.1;
+        cost_threshold = 1.1;
+    }
+
 	int k_top_candidates = k_top;
 
 	/// Suggest for next unassigned:
@@ -669,11 +676,11 @@ void Energy::GuidedDeformation::applyDeformation(Structure::ShapeGraph *shapeA, 
 		if (shapeA->getNode(partID)->type() == Structure::SHEET && shapeB->getNode(tpartID)->type() == Structure::SHEET)
 			Structure::ShapeGraph::correspondTwoNodes(partID, shapeA, tpartID, shapeB);
 
-		DeformToFit::registerAndDeformNodes(shapeA->getNode(partID), shapeB->getNode(tpartID)); if (isSaveKeyframes) shapeA->saveKeyframe();
+        DeformToFit::registerAndDeformNodes(shapeA->getNode(partID), shapeB->getNode(tpartID)); //if (isSaveKeyframes) shapeA->saveKeyframe();
 	}
 
 	//if (isSaveKeyframes) shapeA->pushKeyframeDebug(new RenderObject::Text(30, 30, "now symmetry", 15));
-	PropagateSymmetry::propagate(fixed, shapeA); if (isSaveKeyframes) shapeA->saveKeyframe();
+    PropagateSymmetry::propagate(fixed, shapeA); //if (isSaveKeyframes) shapeA->saveKeyframe();
 
 	// Propagate edit by applying structural constraints
 	//if (isSaveKeyframes) shapeA->pushKeyframeDebug(new RenderObject::Text(30, 30, "now proximity", 15));

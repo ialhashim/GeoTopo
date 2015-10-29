@@ -51,4 +51,11 @@ linux-g++{ LIBS += -lGLU }
 win32{
     QMAKE_CXXFLAGS *= /openmp
     QMAKE_CXXFLAGS *= /MP
+
+    # Intel's embree 2 library
+    DEFINES += USE_EMBREE
+
+    contains(DEFINES, USE_EMBREE) {
+        LIBS +=-L$$PWD/../source/StructureGraphLib/embree2
+    }
 }

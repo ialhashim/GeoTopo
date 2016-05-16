@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
 			{ { "j", "job" }, QString("Job file to load."), QString("job") },
 			{ { "f", "folder" }, QString("Folder for a shape dataset."), QString("folder") },
             { { "z", "output" }, QString("Folder for output JSON file."), QString("output") },
+            { { "v", "visualize" }, QString("JSON file to visualize."), QString("visualize") },
 			{ { "q", "quiet" }, QString("Skip visualization.") },
             { { "m", "asymmetry" }, QString("Ignore symmetry groups. Used for evaluation.") },
 
@@ -87,6 +88,54 @@ int main(int argc, char *argv[])
 
 	QString path = parser.value("p");
 	QDir::setCurrent(path);
+
+    if(parser.isSet("v"))
+    {
+        QString filename = parser.value("visualize");
+
+        // Open results JSON file
+        QFile file;
+        file.setFileName(filename);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return 0;
+        QJsonDocument jdoc = QJsonDocument::fromJson(file.readAll());
+        auto corrArray = jdoc.toVariant().value<QVariantList>();
+
+        for (auto c : corrArray)
+        {
+            auto obj = c.toMap();
+
+            // Sanity check
+            if (obj["source"].toString() == obj["target"].toString()) continue;
+
+            // graphs
+            auto source = obj["source"].toString();
+            auto target = obj["target"].toString();
+
+            auto corr = obj["correspondence"].value<QVariantList>();
+            if (corr.isEmpty()) continue;
+
+            QVector< QPair<QString,QString> > mapping;
+
+            for (auto match : corr)
+            {
+                auto matching = match.value<QVariantList>();
+                auto sid = matching.front().toString();
+                auto tid = matching.back().toString();
+
+                if (sid.isEmpty() || tid.isEmpty()) continue;
+
+                mapping.push_back(qMakePair(sid,tid));
+            }
+
+            QVariantMap m;
+            m["mapping"].setValue(mapping);
+
+            BatchProcess::visualizeCorrespondence(source, target, m);
+        }
+
+        std::cout << "\n" << filename.toStdString() << " is done.\n";
+        return 0;
+    }
 
 	/// Experiments:
 	if (parser.isSet("e"))

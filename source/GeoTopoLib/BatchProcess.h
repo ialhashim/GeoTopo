@@ -71,6 +71,9 @@ public:
     // Shapes loaded from memory
     QSharedPointer<Structure::ShapeGraph> cachedShapeA, cachedShapeB;
 
+public:
+    static void visualizeCorrespondence(QString sourceFile, QString targetFile, QVariantMap corr);
+
 public slots:
 	void setJobsArray(QJsonArray);
 

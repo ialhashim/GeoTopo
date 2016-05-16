@@ -891,3 +891,89 @@ BatchProcess::~BatchProcess()
 {
 
 }
+
+#include "StructureAnalysis.h"
+
+void BatchProcess::visualizeCorrespondence(QString sourceFile, QString targetFile, QVariantMap corr)
+{
+    QSharedPointer<Structure::ShapeGraph> shapeA = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(sourceFile));
+    QSharedPointer<Structure::ShapeGraph> shapeB = QSharedPointer<Structure::ShapeGraph>(new Structure::ShapeGraph(targetFile));
+	
+	StructureAnalysis::analyzeGroups(shapeA.data(), false);
+	StructureAnalysis::analyzeGroups(shapeB.data(), false);
+
+    // Grey out
+    for (auto n : shapeA->nodes){
+        shapeA->setColorFor(n->id, QColor(100, 100, 100, 255));
+        n->vis_property["meshSolid"].setValue(true);
+        if (n->type() == Structure::SHEET) ((Structure::Sheet*)n)->surface.quads.clear();
+    }
+    for (auto n : shapeB->nodes){
+        shapeB->setColorFor(n->id, QColor(100, 100, 100, 255));
+        n->vis_property["meshSolid"].setValue(true);
+        if (n->type() == Structure::SHEET) ((Structure::Sheet*)n)->surface.quads.clear();
+    }
+
+    // Hide abstractions
+    shapeA->property["showNodes"].setValue(false);
+    shapeB->property["showNodes"].setValue(false);
+
+    // was QMap<QString, QString> mapping;
+    QVector< QPair<QString,QString> > mapping = corr["mapping"].value< QVector< QPair<QString,QString> > >();
+
+    // Matched target nodes
+    QSet<QString> matchedTargetNodes;
+    for (auto p : mapping /*auto spart : mapping.keys()*/)
+    {
+        //auto tpart = mapping[spart];
+        auto spart = p.first;
+        auto tpart = p.second;
+
+        for (auto group : shapeB->groupsOf(tpart))
+            for (auto part : group)
+                matchedTargetNodes << part;
+    }
+
+    // Assign colors based on target
+    int ci = 0;
+    for (auto & relation : shapeB->relations)
+    {
+        QColor color = myrndcolors[ci++];
+        for (auto nid : relation.parts)
+        {
+            if (!matchedTargetNodes.contains(nid)) continue;
+            shapeB->setColorFor(nid, color);
+            shapeB->getNode(nid)->vis_property["meshSolid"].setValue(true);
+        }
+    }
+
+    // Color matching source
+    for (auto p : mapping /*auto spart : mapping.keys()*/)
+    {
+        //auto tpart = mapping[spart];
+        auto spart = p.first;
+        auto tpart = p.second;
+
+        if (tpart == Structure::null_part) continue;
+
+        auto color = shapeB->getNode(tpart)->vis_property["meshColor"].value<QColor>();
+
+        shapeA->setColorFor(spart, color);
+        shapeA->getNode(spart)->vis_property["meshSolid"].setValue(true);
+    }
+
+
+    // Create and show renderer
+    auto renderer = QSharedPointer<RenderingWidget>(new RenderingWidget(512, NULL));
+    renderer->move(0, 0);
+    renderer->show();
+
+    QImage img = stitchImages(
+        renderer->render(shapeA.data()).scaledToWidth(256, Qt::TransformationMode::SmoothTransformation),
+        renderer->render(shapeB.data()).scaledToWidth(256, Qt::TransformationMode::SmoothTransformation));
+
+    renderer->cur_shape = NULL;
+
+    img.save(QString("%1_%2.png").arg(QFileInfo(sourceFile).baseName()).arg(QFileInfo(targetFile).baseName()));
+}
+

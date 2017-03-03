@@ -57,7 +57,7 @@ inline bool read_off_ascii(Surface_mesh& mesh,
         lp = line;
 
         // position
-        items = sscanf(lp, "%f %f %f%n", &p[0], &p[1], &p[2], &nc);
+        items = sscanf(lp, "%lf %lf %lf%n", &p[0], &p[1], &p[2], &nc);
         assert(items==3);
         v = mesh.add_vertex((Vec3)p);
         lp += nc;
@@ -65,7 +65,7 @@ inline bool read_off_ascii(Surface_mesh& mesh,
         // normal
         if (has_normals)
         {
-            if (sscanf(lp, "%f %f %f%n", &n[0], &n[1], &n[2], &nc) == 3)
+            if (sscanf(lp, "%lf %lf %lf%n", &n[0], &n[1], &n[2], &nc) == 3)
             {
                 normals[v] = n;
             }
@@ -75,7 +75,7 @@ inline bool read_off_ascii(Surface_mesh& mesh,
         // color
         if (has_colors)
         {
-            if (sscanf(lp, "%f %f %f%n", &c[0], &c[1], &c[2], &nc) == 3)
+            if (sscanf(lp, "%lf %lf %lf%n", &c[0], &c[1], &c[2], &nc) == 3)
             {
                 if (c[0]>1.0f || c[1]>1.0f || c[2]>1.0f) c *= (1.0/255.0);
                 colors[v] = c;
@@ -86,7 +86,7 @@ inline bool read_off_ascii(Surface_mesh& mesh,
         // tex coord
         if (has_texcoords)
         {
-            items = sscanf(lp, "%f %f%n", &t[0], &t[1], &nc);
+            items = sscanf(lp, "%lf %lf%n", &t[0], &t[1], &nc);
             assert(items == 2);
             texcoords[v][0] = t[0];
             texcoords[v][1] = t[1];

@@ -234,13 +234,13 @@ inline Vector3 TriTriIntersect(	Vector3 a, Vector3 b, Vector3 c,
                                 Vector3 i, Vector3 j, Vector3 k,
                                 Vector3 & p, Vector3 & q)
 {
-    float V0[3] = {a[0], a[1], a[2]};
-    float V1[3] = {b[0], b[1], b[2]};
-    float V2[3] = {c[0], c[1], c[2]};
+    float V0[3] = {(float)a[0], (float)a[1], (float)a[2]};
+    float V1[3] = {(float)b[0], (float)b[1], (float)b[2]};
+    float V2[3] = {(float)c[0], (float)c[1], (float)c[2]};
 
-    float U0[3] = {i[0], i[1], i[2]};
-    float U1[3] = {j[0], j[1], j[2]};
-    float U2[3] = {k[0], k[1], k[2]};
+    float U0[3] = {(float)i[0], (float)i[1], (float)i[2]};
+    float U1[3] = {(float)j[0], (float)j[1], (float)j[2]};
+    float U2[3] = {(float)k[0], (float)k[1], (float)k[2]};
 
     float P[3] = {0,0,0};
     float Q[3] = {0,0,0};
@@ -251,8 +251,8 @@ inline Vector3 TriTriIntersect(	Vector3 a, Vector3 b, Vector3 c,
                                      U0, U1, U2,
                                      &isCoplanar,
                                      P,Q);
-    p = Vector3(P[0], P[1], P[2]);
-    q = Vector3(Q[0], Q[1], Q[2]);
+    p = Vector3((float)P[0], (float)P[1], (float)P[2]);
+    q = Vector3((float)Q[0], (float)Q[1], (float)Q[2]);
 
     if( isCoplanar ) p = q = (a+b+c+i+j+k) / 6.0;
 

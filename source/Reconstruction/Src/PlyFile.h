@@ -145,7 +145,7 @@ typedef struct PlyFile {        /* description of PLY file */
 } PlyFile;
 	
 	/* memory allocation */
-extern char *my_alloc();
+extern char *my_alloc(int, int, const char *);
 #define myalloc(mem_size) my_alloc((mem_size), __LINE__, __FILE__)
 
 #ifndef ALLOCN

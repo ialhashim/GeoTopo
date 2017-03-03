@@ -218,7 +218,7 @@ void SortedTreeNodes< OutputDensity >::setCornerTable( CornerTableData& cData , 
 						if( rootNode )
 							printf( "(%d [%d %d %d) <-> (%d [%d %d %d])\n" , minDepth , off[0] , off[1] , off[2] , _d , _off[0] , _off[1] , _off[2] );
 						else
-							printf( "NULL <-> (%d [%d %d %d])\n" , minDepth , off[0] , off[1] , off[2] , _d , _off[0] , _off[1] , _off[2] );
+                            printf( "NULL <-> (%d [%d %d %d])\n" , minDepth , off[0] , off[1] , off[2] );
 						printf( "[%d %d]\n" , spans[d].first , spans[d].second );
 						exit( 0 );
 					}
@@ -2874,7 +2874,7 @@ void Octree< Degree , OutputDensity >::FaceEdgesFunction::Function( const TreeOc
 	if( !node1->children && MarchingCubes::HasRoots( node1->nodeData.mcIndex ) )
 	{
 		RootInfo< OutputDensity > ri1 , ri2;
-		typename hash_map< long long , std::pair< RootInfo< OutputDensity > , int > >::iterator iter;
+		typename std::unordered_map< long long , std::pair< RootInfo< OutputDensity > , int > >::iterator iter;
 		int isoTri[DIMENSION*MarchingCubes::MAX_TRIANGLES];
 		int count=MarchingCubes::AddTriangleIndices( node1->nodeData.mcIndex , isoTri );
 
@@ -2900,7 +2900,7 @@ void Octree< Degree , OutputDensity >::FaceEdgesFunction::Function( const TreeOc
 						(*vertexCount)[key1].second--;
 						(*vertexCount)[key2].second++;
 					}
-					else fprintf( stderr , "Bad Edge 1: %d %d\n" , ri1.key , ri2.key );
+                    else fprintf( stderr , "Bad Edge 1: %d %d\n" , (int) ri1.key , (int) ri2.key );
 	}
 }
 template< int Degree , bool OutputDensity >
@@ -3001,7 +3001,7 @@ void Octree< Degree , OutputDensity >::GetMCIsoTriangles( Real isoValue , int su
 #pragma omp parallel for num_threads( threads )
 	for( int i=0 ; i<_sNodes.nodeCount[maxDepth+1] ; i++ ) _sNodes.treeNodes[i]->nodeData.mcIndex = 0;
 
-	rootData.boundaryValues = new hash_map< long long , std::pair< Real , Point3D< Real > > >();
+	rootData.boundaryValues = new std::unordered_map< long long , std::pair< Real , Point3D< Real > > >();
 	int offSet = 0;
 
 	int maxCCount = _sNodes.getMaxCornerCount( sDepth , maxDepth , threads );
@@ -3107,7 +3107,7 @@ void Octree< Degree , OutputDensity >::GetMCIsoTriangles( Real isoValue , int su
 	DeletePointer( rootData.edgesSet );
 	coarseRootData.interiorRoots = NullPointer< int >();
 	coarseRootData.boundaryValues = rootData.boundaryValues;
-	for( hash_map< long long , int >::iterator iter=rootData.boundaryRoots.begin() ; iter!=rootData.boundaryRoots.end() ; iter++ ) 
+	for( std::unordered_map< long long , int >::iterator iter=rootData.boundaryRoots.begin() ; iter!=rootData.boundaryRoots.end() ; iter++ ) 
 		coarseRootData.boundaryRoots[iter->first] = iter->second;
 
 	for( int d=sDepth ; d>=0 ; d-- )
@@ -3952,7 +3952,7 @@ template< int Degree , bool OutputDensity >
 int Octree< Degree , OutputDensity >::GetRootIndex( const RootInfo< OutputDensity >& ri , RootData& rootData , CoredPointIndex& index )
 {
 	long long key = ri.key;
-	hash_map< long long , int >::iterator rootIter;
+	std::unordered_map< long long , int >::iterator rootIter;
 	rootIter = rootData.boundaryRoots.find( key );
 	if( rootIter!=rootData.boundaryRoots.end() )
 	{
@@ -3991,7 +3991,7 @@ int Octree< Degree , OutputDensity >::SetMCRootPositions( TreeOctNode* node , in
 			key = ri.key;
 			if( !rootData.interiorRoots || IsBoundaryEdge( node , i , j , k , sDepth ) )
 			{
-				hash_map< long long , int >::iterator iter , end;
+				std::unordered_map< long long , int >::iterator iter , end;
 				// Check if the root has already been set
 #pragma omp critical (boundary_roots_hash_access)
 				{
@@ -4093,8 +4093,8 @@ void Octree< Degree , OutputDensity >::GetMCIsoEdges( TreeOctNode* node , int sD
 	int isoTri[ DIMENSION * MarchingCubes::MAX_TRIANGLES ];
 	FaceEdgesFunction fef;
 	int ref , fIndex;
-	typename hash_map< long long , std::pair< RootInfo< OutputDensity > , int > >::iterator iter;
-	hash_map< long long , std::pair< RootInfo< OutputDensity > , int > > vertexCount;
+	typename std::unordered_map< long long , std::pair< RootInfo< OutputDensity > , int > >::iterator iter;
+	std::unordered_map< long long , std::pair< RootInfo< OutputDensity > , int > > vertexCount;
 
 	fef.edges = &edges;
 	fef.maxDepth = fData.depth;
@@ -4138,14 +4138,14 @@ void Octree< Degree , OutputDensity >::GetMCIsoEdges( TreeOctNode* node , int sD
 						{
 							int r1 = MarchingCubes::HasEdgeRoots( node->nodeData.mcIndex , isoTri[j*3+k] );
 							int r2 = MarchingCubes::HasEdgeRoots( node->nodeData.mcIndex , isoTri[j*3+((k+1)%3)] );
-							fprintf( stderr , "Bad Edge 2: %d %d\t%d %d\n" , ri1.key , ri2.key , r1 , r2 );
+                            fprintf( stderr , "Bad Edge 2: %d %d\t%d %d\n" , (int) ri1.key , (int) ri2.key , r1 , r2 );
 						}
 		}
 	}
 	for( int i=0 ; i<int(edges.size()) ; i++ )
 	{
 		iter = vertexCount.find( edges[i].first.key );
-		if( iter==vertexCount.end() ) printf( "Could not find vertex: %lld\n" , edges[i].first );
+        if( iter==vertexCount.end() ) printf( "Could not find vertex:" );
 		else if( vertexCount[ edges[i].first.key ].second )
 		{
 			RootInfo< OutputDensity > ri;
@@ -4167,7 +4167,7 @@ void Octree< Degree , OutputDensity >::GetMCIsoEdges( TreeOctNode* node , int sD
 		}
 
 		iter = vertexCount.find( edges[i].second.key );
-		if( iter==vertexCount.end() ) printf( "Could not find vertex: %lld\n" , edges[i].second );
+        if( iter==vertexCount.end() ) printf( "Could not find vertex:" );
 		else if( vertexCount[edges[i].second.key].second )
 		{
 			RootInfo< OutputDensity > ri;

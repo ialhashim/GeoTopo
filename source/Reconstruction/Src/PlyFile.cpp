@@ -38,7 +38,7 @@
 #include <string.h>
 #include "PlyFile.h"
 
-char *type_names[] = {
+const char * type_names[] = {
 	"invalid",
 	"char",
 	"short",
@@ -57,7 +57,6 @@ char *type_names[] = {
 	"uint32",     // unsigned integer          4
 	"float32",    // single-precision float    4
 	"float64",    // double-precision float    8
-
 };
 
 int ply_type_size[] = {
@@ -99,7 +98,7 @@ static int types_checked = 0;
 
 
 /* returns 1 if strings are equal, 0 if not */
-int equal_strings(char *, char *);
+int equal_strings(char *, const char *);
 
 /* find an element in a plyfile's list */
 PlyElement *find_element(PlyFile *, char *);
@@ -1454,7 +1453,7 @@ Open a polygon file for reading.
   Compare two strings.  Returns 1 if they are the same, 0 if not.
   ******************************************************************************/
   
-  int equal_strings(char *s1, char *s2)
+  int equal_strings(char *s1, const char *s2)
   {
 	  
 	  while (*s1 && *s2)
@@ -2712,7 +2711,7 @@ Read an element from a binary file.
    fname - file name from which memory was requested
   ******************************************************************************/
   
-  char *my_alloc(int size, int lnum, char *fname)
+  char *my_alloc(int size, int lnum, const char *fname)
   {
 	  char *ptr;
 	  
